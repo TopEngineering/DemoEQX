@@ -44,7 +44,16 @@ namespace EQX.TemplateProject.Defines
         public IDOutput InCst_StopperDown => _dOutputDevice.Outputs.First(i => i.Id == (int)EOutput.IN_CV_STOPPER_DOWN);
         public IDOutput OutCst_StopperUp => _dOutputDevice.Outputs.First(i => i.Id == (int)EOutput.OUT_CV_STOPPER_UP);
         public IDOutput OutCst_StopperDown => _dOutputDevice.Outputs.First(i => i.Id == (int)EOutput.OUT_CV_STOPPER_DOWN);
-        
+
+        public IDOutput Cylinder1Up => _dOutputDevice.Outputs.First(i => i.Id == (int)EOutput.CYLINDER1_UP);
+        public IDOutput Cylinder1Down => _dOutputDevice.Outputs.First(i => i.Id == (int)EOutput.CYLINDER1_DOWN);
+        public IDOutput Vacuum1On => _dOutputDevice.Outputs.First(i => i.Id == (int)EOutput.VACUUM1_ON);
+        public IDOutput Vacuum1Blow => _dOutputDevice.Outputs.First(i => i.Id == (int)EOutput.VACUUM1_BLOW);
+        public IDOutput Cylinder2Up => _dOutputDevice.Outputs.First(i => i.Id == (int)EOutput.CYLINDER2_UP);
+        public IDOutput Cylinder2Down => _dOutputDevice.Outputs.First(i => i.Id == (int)EOutput.CYLINDER2_DOWN);
+        public IDOutput Vacuum2On => _dOutputDevice.Outputs.First(i => i.Id == (int)EOutput.VACUUM2_ON);
+        public IDOutput Vacuum2Blow => _dOutputDevice.Outputs.First(i => i.Id == (int)EOutput.VACUUM2_BLOW);
+
         public void Lamp_Run()
         {
             Lamp_Clear();

@@ -49,5 +49,16 @@ namespace EQX.TemplateProject.Defines
         public IDInput InCV_StopperDown => _dInputDevice.Inputs.First(i => i.Id == (int)EInput.IN_CV_STOPPER_DOWN);
         public IDInput OutCV_StopperUp => _dInputDevice.Inputs.First(i => i.Id == (int)EInput.OUT_CV_STOPPER_UP);
         public IDInput OutCV_StopperDown => _dInputDevice.Inputs.First(i => i.Id == (int)EInput.OUT_CV_STOPPER_DOWN);
+
+        public IDInput InputTrayDetect => _dInputDevice.Inputs.First(i => i.Id == (int)EInput.INPUT_TRAY_DETECT);
+        public IDInput OutputTrayDetect => _dInputDevice.Inputs.First(i => i.Id == (int)EInput.OUTPUT_TRAY_DETECT);
+        public IDInput Cylinder1Up => _dInputDevice.Inputs.First(i => i.Id == (int)EInput.CYLINDER1_UP);
+        public IDInput Cylinder1Down => _dInputDevice.Inputs.First(i => i.Id == (int)EInput.CYLINDER1_DOWN);
+        public IDInput Vacuum1On => _dInputDevice.Inputs.First(i => i.Id == (int)EInput.VACUUM1_ON);
+        public IDInput Vacuum1Blow => _dInputDevice.Inputs.First(i => i.Id == (int)EInput.VACUUM1_BLOW);
+        public IDInput Cylinder2Up => _dInputDevice.Inputs.First(i => i.Id == (int)EInput.CYLINDER2_UP);
+        public IDInput Cylinder2Down => _dInputDevice.Inputs.First(i => i.Id == (int)EInput.CYLINDER2_DOWN);
+        public IDInput Vacuum2On => _dInputDevice.Inputs.First(i => i.Id == (int)EInput.VACUUM2_ON);
+        public IDInput Vacuum2Blow => _dInputDevice.Inputs.First(i => i.Id == (int)EInput.VACUUM2_BLOW);
     }
 }
