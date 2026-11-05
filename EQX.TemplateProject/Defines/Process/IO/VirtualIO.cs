@@ -33,11 +33,11 @@ namespace EQX.TemplateProject.Defines
 
         public void Mappings()
         {
-            TransferProcessInput[ETransferProcessInput.SHUTTLE_REQUEST_LOAD]
-                .MapTo(ShuttleProcessOutput[EShuttleProcessOutput.SHUTTLE_REQUEST_LOAD]);
+            //TransferProcessInput[ETransferProcessInput.SHUTTLE_REQUEST_LOAD]
+            //    .MapTo(ShuttleProcessOutput[EShuttleProcessOutput.SHUTTLE_REQUEST_LOAD]);
 
-            ShuttleProcessInput[EShuttleProcessInput.TRANSFER_LOAD_DONE]
-                .MapTo(TransferProcessOutput[ETransferProcessOutput.TRANSFER_LOAD_DONE]);
+            //ShuttleProcessInput[EShuttleProcessInput.TRANSFER_LOAD_DONE]
+            //    .MapTo(TransferProcessOutput[ETransferProcessOutput.TRANSFER_LOAD_DONE]);
         }
     }
 }

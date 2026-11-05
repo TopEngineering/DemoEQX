@@ -3,7 +3,6 @@
     public enum EProcess
     {
         Root,
-        Transfer,
-        Shuttle
+        Transfer
     }
 }

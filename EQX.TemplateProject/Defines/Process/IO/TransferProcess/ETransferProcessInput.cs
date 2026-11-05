@@ -8,6 +8,7 @@ namespace EQX.TemplateProject.Defines
 {
     public enum ETransferProcessInput
     {
-        SHUTTLE_REQUEST_LOAD
+        TRAY_PICK_POSITION_READY,
+        TRAY_PLACE_POSITION_READY
     }
 }

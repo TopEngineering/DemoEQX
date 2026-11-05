@@ -11,6 +11,5 @@ namespace EQX.TemplateProject.Defines
         TransferXAxis,
         TransferYAxis,
         TransferZAxis,
-        ShuttleXAxis,
     }
 }

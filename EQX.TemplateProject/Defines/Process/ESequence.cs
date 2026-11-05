@@ -15,19 +15,19 @@ namespace EQX.TemplateProject.Defines
         /// </summary>
         Ready,
 
-        [Description("Sequence Load")]
-        Load,
-        [Description("Sequence Unload")]
-        Unload,
+        [Description("Sequence Pick")]
+        Pick,
+        [Description("Sequence Place")]
+        Place,
     }
 
     public enum ESemiSequence
     {
         None,
 
-        [Description("Sequence Load")]
-        Load,
-        [Description("Sequence Unload")]
-        Unload,
+        [Description("Sequence Pick")]
+        Pick,
+        [Description("Sequence Place")]
+        Place,
     }
 }

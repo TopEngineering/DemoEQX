@@ -10,7 +10,7 @@ namespace EQX.TemplateProject.Process
         #region Properties
         public IProcess<ESequence> RootProcess => _processes.First(p => p.Name == EProcess.Root.ToString());
         public IProcess<ESequence> TransferProcess => _processes.First(p => p.Name == EProcess.Transfer.ToString());
-        public IProcess<ESequence> ShuttleProcess => _processes.First(p => p.Name == EProcess.Shuttle.ToString());
+        //public IProcess<ESequence> ShuttleProcess => _processes.First(p => p.Name == EProcess.Shuttle.ToString());
         #endregion
 
         public Processes(List<IProcess<ESequence>> processes)
@@ -22,7 +22,7 @@ namespace EQX.TemplateProject.Process
         {
             // Initialize the processes
             RootProcess.AddChild(TransferProcess);
-            RootProcess.AddChild(ShuttleProcess);
+            //RootProcess.AddChild(ShuttleProcess);
 
             // Set the process hierarchy
             foreach (var process in RootProcess.Childs)

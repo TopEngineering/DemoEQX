@@ -24,21 +24,21 @@ namespace EQX.TemplateProject.Process
         private IDInputDevice VirtualInput => _virtualIO.TransferProcessInput;
         private IDOutputDevice VirtualOutput => _virtualIO.TransferProcessOutput;
 
-        private bool FlagIn_ShuttleRequestLoad
-        {
-            get
-            {
-                return VirtualInput[ETransferProcessInput.SHUTTLE_REQUEST_LOAD].Value;
-            }
-        }
+        //private bool FlagIn_ShuttleRequestLoad
+        //{
+        //    get
+        //    {
+        //        return VirtualInput[ETransferProcessInput.SHUTTLE_REQUEST_LOAD].Value;
+        //    }
+        //}
 
-        private bool FlagOut_TransferLoadDone
-        {
-            set
-            {
-                VirtualOutput[ETransferProcessOutput.TRANSFER_LOAD_DONE].Value = value;
-            }
-        }
+        //private bool FlagOut_TransferLoadDone
+        //{
+        //    set
+        //    {
+        //        VirtualOutput[ETransferProcessOutput.TRANSFER_LOAD_DONE].Value = value;
+        //    }
+        //}
         #endregion
 
         #region Constructor
@@ -77,14 +77,14 @@ namespace EQX.TemplateProject.Process
                     Log.Debug("Z Axis Origin Done");
                     Step.OriginStep++;
                     break;
-                case ETransferProcessOriginStep.XY_Axis_Origin:
-                    Log.Debug("XY Axis Origin");
-                    XAxis.SearchOrigin();
-                    YAxis.SearchOrigin();
-                    Wait((int)(_recipeList.CommonRecipe.MotionOriginTimeout * 1000), () => XAxis.Status.IsHomeDone && YAxis.Status.IsHomeDone);
-                    Step.OriginStep++;
-                    break;
-                case ETransferProcessOriginStep.XY_Axis_Origin_Wait:
+                //case ETransferProcessOriginStep.XY_Axis_Origin:
+                //    Log.Debug("XY Axis Origin");
+                //    XAxis.SearchOrigin();
+                //    YAxis.SearchOrigin();
+                //    Wait((int)(_recipeList.CommonRecipe.MotionOriginTimeout * 1000), () => XAxis.Status.IsHomeDone && YAxis.Status.IsHomeDone);
+                //    Step.OriginStep++;
+                //    break;
+                //case ETransferProcessOriginStep.XY_Axis_Origin_Wait:
                     if (WaitTimeOutOccurred)
                     {
                         if(XAxis.Status.IsHomeDone == false)
@@ -123,12 +123,12 @@ namespace EQX.TemplateProject.Process
                 case ESequence.Ready:
                     Sequence = ESequence.Stop;
                     break;
-                case ESequence.Load:
-                    Sequence_Load();
-                    break;
-                case ESequence.Unload:
-                    Sequence_Unload();
-                    break;
+                //case ESequence.Load:
+                //    Sequence_Load();
+                //    break;
+                //case ESequence.Unload:
+                //    Sequence_Unload();
+                //    break;
             }
             return true;
         }
@@ -137,7 +137,7 @@ namespace EQX.TemplateProject.Process
         #region Sequences
         private void Sequence_AutoRun()
         {
-            Sequence = ESequence.Load;
+            Sequence = ESequence.Pick;
         }
 
         private void Sequence_Load()
@@ -158,11 +158,11 @@ namespace EQX.TemplateProject.Process
                     Step.RunStep++;
                     break;
                 case ETransferProcessLoadStep.Wait_ShuttleRequestLoad:
-                    if(FlagIn_ShuttleRequestLoad == false)
-                    {
-                        Wait(20);
-                        break;
-                    }
+                    //if(FlagIn_ShuttleRequestLoad == false)
+                    //{
+                    //    Wait(20);
+                    //    break;
+                    //}
 
                     Log.Debug("ShuttleRequestLoad Received");
                     Step.RunStep++;
@@ -176,26 +176,26 @@ namespace EQX.TemplateProject.Process
                     Log.Debug("Z Axis Move to Load Position Done");
                     Step.RunStep++;
                     break;
-                case ETransferProcessLoadStep.SetFlag_TransferLoadDone:
-                    Log.Debug("Set Flag TransferLoadDone");
-                    FlagOut_TransferLoadDone = true;
-                    Step.RunStep++;
-                    break;
-                case ETransferProcessLoadStep.Wait_FlagShuttleRequestLoad_Reset:
-                    if(FlagIn_ShuttleRequestLoad == true)
-                    {
-                        Wait(20);
-                        break;
-                    }
+                //case ETransferProcessLoadStep.SetFlag_TransferLoadDone:
+                //    Log.Debug("Set Flag TransferLoadDone");
+                //    FlagOut_TransferLoadDone = true;
+                //    Step.RunStep++;
+                //    break;
+                //case ETransferProcessLoadStep.Wait_FlagShuttleRequestLoad_Reset:
+                //    if(FlagIn_ShuttleRequestLoad == true)
+                //    {
+                //        Wait(20);
+                //        break;
+                //    }
 
-                    Log.Debug("Flag ShuttleRequestLoad Reset");
-                    FlagOut_TransferLoadDone = false;
-                    Step.RunStep++;
-                    break;
-                case ETransferProcessLoadStep.End:
-                    Log.Debug("Load End");
-                    Sequence = ESequence.Unload;
-                    break;
+                //    Log.Debug("Flag ShuttleRequestLoad Reset");
+                //    FlagOut_TransferLoadDone = false;
+                //    Step.RunStep++;
+                //    break;
+                //case ETransferProcessLoadStep.End:
+                //    Log.Debug("Load End");
+                //    Sequence = ESequence.Unload;
+                //    break;
             }
         }
 
@@ -227,7 +227,7 @@ namespace EQX.TemplateProject.Process
                     break;
                 case ETransferProcessUnloadStep.End:
                     Log.Debug("Unload End");
-                    Sequence = ESequence.Load;
+                    //Sequence = ESequence.Load;
                     break;
             }
         }

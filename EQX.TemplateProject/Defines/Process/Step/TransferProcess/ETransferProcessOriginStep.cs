@@ -9,10 +9,12 @@ namespace EQX.TemplateProject.Defines
     public enum ETransferProcessOriginStep
     {
         Start,
+        XAis_Origin,
+        XAis_Origin_Wait,
+        YAis_Origin,
+        YAis_Origin_Wait,
         ZAxis_Origin,
         ZAxis_Origin_Wait,
-        XY_Axis_Origin,
-        XY_Axis_Origin_Wait,
-        End
+        End,
     }
 }

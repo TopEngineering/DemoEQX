@@ -15,7 +15,6 @@ namespace EQX.TemplateProject.Process
         private readonly VirtualIO _virtualIO;
         private readonly Devices _devices;
 
-        private IMotion XAxis => _devices.Motions.ShuttleXAxis;
         #endregion
 
         #region Flags
@@ -59,11 +58,11 @@ namespace EQX.TemplateProject.Process
                     Step.OriginStep++;
                     break;
                 case EShuttleProcessOriginStep.XAxis_Origin:
-                    Log.Debug("X Axis Origin");
-                    XAxis.SearchOrigin();
-                    Wait((int)(_recipeList.CommonRecipe.MotionOriginTimeout * 1000), () => XAxis.Status.IsHomeDone);
-                    Step.OriginStep++;
-                    break;
+                    //Log.Debug("X Axis Origin");
+                    //XAxis.SearchOrigin();
+                    //Wait((int)(_recipeList.CommonRecipe.MotionOriginTimeout * 1000), () => XAxis.Status.IsHomeDone);
+                    //Step.OriginStep++;
+                    //break;
                 case EShuttleProcessOriginStep.XAxis_Origin_Wait:
                     if (WaitTimeOutOccurred)
                     {
@@ -98,12 +97,12 @@ namespace EQX.TemplateProject.Process
                 case ESequence.Ready:
                     Sequence = ESequence.Stop;
                     break;
-                case ESequence.Load:
-                    Sequence_Load();
-                    break;
-                case ESequence.Unload:
-                    Sequence_Unload();
-                    break;
+                //case ESequence.Load:
+                //    Sequence_Load();
+                //    break;
+                //case ESequence.Unload:
+                //    Sequence_Unload();
+                //    break;
             }
 
             return true;
@@ -113,7 +112,7 @@ namespace EQX.TemplateProject.Process
         #region Sequences
         private void Sequence_AutoRun()
         {
-            Sequence = ESequence.Load;
+            //Sequence = ESequence.Load;
         }
 
         private void Sequence_Load()
@@ -151,14 +150,14 @@ namespace EQX.TemplateProject.Process
                     break;
                 case EShuttleProcessLoadStep.End:
                     Log.Debug("Load End");
-                    Sequence = ESequence.Unload;
+                    //Sequence = ESequence.Unload;
                     break;
             }
         }
 
         private void Sequence_Unload()
         {
-            Sequence = ESequence.Load;
+            //Sequence = ESequence.Load;
         }
         #endregion
     }

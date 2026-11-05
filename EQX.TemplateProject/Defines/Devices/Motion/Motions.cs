@@ -26,7 +26,6 @@ namespace EQX.TemplateProject.Defines
         public IMotion TransferXAxis => AjinMotions.All.First(m => m.Id == (int)EMotion.TransferXAxis);
         public IMotion TransferYAxis => AjinMotions.All.First(m => m.Id == (int)EMotion.TransferYAxis);
         public IMotion TransferZAxis => AjinMotions.All.First(m => m.Id == (int)EMotion.TransferZAxis);
-        public IMotion ShuttleXAxis => AjinMotions.All.First(m => m.Id == (int)EMotion.ShuttleXAxis);
         #endregion
     }
 }
