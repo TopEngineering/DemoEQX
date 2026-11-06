@@ -5,5 +5,7 @@
         InCV_StopperUpDown,
 
         OutCV_StopperUpDown,
+        PickHead1UpDown,
+        PickHead2UpDown,
     }
 }

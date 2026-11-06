@@ -1,9 +1,10 @@
-﻿using EQX.Core.InOut;
+using EQX.Core.InOut;
 using EQX.Core.Motion;
 using EQX.Core.Sequence;
 using EQX.Process;
 using EQX.TemplateProject.Defines;
 using EQX.TemplateProject.Defines.Devices;
+using EQX.TemplateProject.Defines.Process.Step.TransferProcess;
 using EQX.TemplateProject.Recipe;
 
 namespace EQX.TemplateProject.Process
@@ -18,6 +19,8 @@ namespace EQX.TemplateProject.Process
         private IMotion XAxis => _devices.Motions.TransferXAxis;
         private IMotion YAxis => _devices.Motions.TransferYAxis;
         private IMotion ZAxis => _devices.Motions.TransferZAxis;
+        private ICylinder Cylinder1 => _devices.Cylinders.TransferCylinder1;
+        private ICylinder Cylinder2 => _devices.Cylinders.TransferCylinder2;
         #endregion
 
         #region Flags
@@ -61,6 +64,36 @@ namespace EQX.TemplateProject.Process
                     Log.Debug("Origin Start");
                     Step.OriginStep++;
                     break;
+                case ETransferProcessOriginStep.XAxis_Origin:
+                    Log.Debug("X Axis Origin");
+                    XAxis.SearchOrigin();
+                    Wait((int)(_recipeList.CommonRecipe.MotionOriginTimeout * 1000), () => XAxis.Status.IsHomeDone);
+                    Step.OriginStep++;
+                    break;
+                case ETransferProcessOriginStep.XAxis_Origin_Wait:
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TransferXAxis_OriginTimeout);
+                        return false;
+                    }
+                    Log.Debug("X Axis Origin Done");
+                    Step.OriginStep++;
+                    break;
+                case ETransferProcessOriginStep.YAxis_Origin:
+                    Log.Debug("Y Axis Origin");
+                    YAxis.SearchOrigin();
+                    Wait((int)(_recipeList.CommonRecipe.MotionOriginTimeout * 1000), () => YAxis.Status.IsHomeDone);
+                    Step.OriginStep++;
+                    break;
+                case ETransferProcessOriginStep.YAxis_Origin_Wait:
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TransferYAxis_OriginTimeout);
+                        return false;
+                    }
+                    Log.Debug("Y Axis Origin Done");
+                    Step.OriginStep++;
+                    break;
                 case ETransferProcessOriginStep.ZAxis_Origin:
                     Log.Debug("Z Axis Origin");
                     ZAxis.SearchOrigin();
@@ -68,34 +101,12 @@ namespace EQX.TemplateProject.Process
                     Step.OriginStep++;
                     break;
                 case ETransferProcessOriginStep.ZAxis_Origin_Wait:
-                    if(WaitTimeOutOccurred)
+                    if (WaitTimeOutOccurred)
                     {
                         RaiseAlarm(EAlarm.TransferZAxis_OriginTimeout);
                         return false;
                     }
-
                     Log.Debug("Z Axis Origin Done");
-                    Step.OriginStep++;
-                    break;
-                //case ETransferProcessOriginStep.XY_Axis_Origin:
-                //    Log.Debug("XY Axis Origin");
-                //    XAxis.SearchOrigin();
-                //    YAxis.SearchOrigin();
-                //    Wait((int)(_recipeList.CommonRecipe.MotionOriginTimeout * 1000), () => XAxis.Status.IsHomeDone && YAxis.Status.IsHomeDone);
-                //    Step.OriginStep++;
-                //    break;
-                //case ETransferProcessOriginStep.XY_Axis_Origin_Wait:
-                    if (WaitTimeOutOccurred)
-                    {
-                        if(XAxis.Status.IsHomeDone == false)
-                        {
-                            RaiseAlarm(EAlarm.TransferXAxis_OriginTimeout);
-                            break;
-                        }
-                        RaiseAlarm(EAlarm.TransferYAxis_OriginTimeout);
-                        break;
-                    }
-                    Log.Debug("XY Axis Origin Done");
                     Step.OriginStep++;
                     break;
                 case ETransferProcessOriginStep.End:
@@ -123,12 +134,12 @@ namespace EQX.TemplateProject.Process
                 case ESequence.Ready:
                     Sequence = ESequence.Stop;
                     break;
-                //case ESequence.Load:
-                //    Sequence_Load();
-                //    break;
-                //case ESequence.Unload:
-                //    Sequence_Unload();
-                //    break;
+                case ESequence.Pick:
+                    Sequence_Pick();
+                    break;
+                case ESequence.Place:
+                    Sequence_Place();
+                    break;
             }
             return true;
         }
@@ -140,94 +151,200 @@ namespace EQX.TemplateProject.Process
             Sequence = ESequence.Pick;
         }
 
-        private void Sequence_Load()
+        private void Sequence_Pick()
         {
-            switch ((ETransferProcessLoadStep)Step.RunStep)
+            switch ((ETransferProcessPickStep)Step.RunStep)
             {
-                case ETransferProcessLoadStep.Start:
-                    Log.Debug("Load Start");
+                case ETransferProcessPickStep.Start:
+                    Log.Debug("Pick Start");
                     Step.RunStep++;
                     break;
-                case ETransferProcessLoadStep.XY_Axis_MoveLoadPosition:
-                    Log.Debug("XY Axis Move to Load Position");
-                    Wait(3000);
+                case ETransferProcessPickStep.XAxis_MovePickPosition:
+                    Log.Debug("X Axis Move to Pick Position");
+                    XAxis.MoveAbs(_recipeList.TransferRecipe.PickX);
+                    Wait(1000);
                     Step.RunStep++;
                     break;
-                case ETransferProcessLoadStep.XY_Axis_MoveLoadPosition_Wait:
-                    Log.Debug("XY Axis Move to Load Position Done");
+                case ETransferProcessPickStep.XAxis_MovePickPosition_Wait:
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TransferXAxis_PickTimeout);
+                    }
+                    Log.Debug("X Axis Move Pick Position Done");
+                    break;
+                case ETransferProcessPickStep.YAxis_MovePickPosition:
+                    Log.Debug("Y Axis Move to Pick Position");
+                    YAxis.MoveAbs(_recipeList.TransferRecipe.PickY);
+                    Wait(1000);
                     Step.RunStep++;
                     break;
-                case ETransferProcessLoadStep.Wait_ShuttleRequestLoad:
-                    //if(FlagIn_ShuttleRequestLoad == false)
-                    //{
-                    //    Wait(20);
-                    //    break;
-                    //}
-
-                    Log.Debug("ShuttleRequestLoad Received");
+                case ETransferProcessPickStep.YAxis_MovePickPosition_Wait:
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TransferYAxis_PickTimeout);
+                    }
+                    Log.Debug("Y Axis Move Pick Position Done");
+                    break;
+                case ETransferProcessPickStep.ZAxis_MovePickPosition:
+                    Log.Debug("Z Axis Move to Pick Position");
+                    ZAxis.MoveAbs(_recipeList.TransferRecipe.PickZ);
+                    Wait(1000);
                     Step.RunStep++;
                     break;
-                case ETransferProcessLoadStep.ZAxis_MoveLoadPosition:
-                    Log.Debug("Z Axis Move to Load Position");
-                    Step.RunStep++;
-                    Wait(2000);
+                case ETransferProcessPickStep.ZAxis_MovePickPosition_Wait:
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TransferZAxis_PickTimeout);
+                    }
+                    Log.Debug("Z Axis Move Pick Position Done");
                     break;
-                case ETransferProcessLoadStep.ZAxis_MoveLoadPosition_Wait:
-                    Log.Debug("Z Axis Move to Load Position Done");
+                case ETransferProcessPickStep.Cylinders1_Down:
+                    Log.Debug("Cylinder1 Down");
+                    Wait(1000);
                     Step.RunStep++;
                     break;
-                //case ETransferProcessLoadStep.SetFlag_TransferLoadDone:
-                //    Log.Debug("Set Flag TransferLoadDone");
-                //    FlagOut_TransferLoadDone = true;
-                //    Step.RunStep++;
-                //    break;
-                //case ETransferProcessLoadStep.Wait_FlagShuttleRequestLoad_Reset:
-                //    if(FlagIn_ShuttleRequestLoad == true)
-                //    {
-                //        Wait(20);
-                //        break;
-                //    }
-
-                //    Log.Debug("Flag ShuttleRequestLoad Reset");
-                //    FlagOut_TransferLoadDone = false;
-                //    Step.RunStep++;
-                //    break;
-                //case ETransferProcessLoadStep.End:
-                //    Log.Debug("Load End");
-                //    Sequence = ESequence.Unload;
-                //    break;
+                case ETransferProcessPickStep.Cylinders1_Down_Wait:
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TransferCylinder_Pick1Timeout);
+                    }
+                    Log.Debug("Cylinder1 Down Done");
+                    break;
+                case ETransferProcessPickStep.Vacuum1_On:
+                    Log.Debug("Vacuum1 On");
+                    Wait(1000);
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPickStep.Vacuum1_On_Wait:
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.Vacuum1_OnTimeout);
+                    }
+                    Log.Debug("Vacuum1 On Done");
+                    break;
+                case ETransferProcessPickStep.Cylinders1_Up:
+                    Log.Debug("Cylinder1 Up");
+                    Wait(1000);
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPickStep.Cylinders1_Up_Wait:
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TransferCylinder_Place1Timeout);
+                    }
+                    Log.Debug("Cylinder1 Up Done");
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPickStep.Cylinders2_Down:
+                    Log.Debug("Cylinder2 Down");
+                    Wait(1000);
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPickStep.Cylinders2_Down_Wait:
+                    if (WaitTimeOutOccurred) 
+                    {
+                        RaiseAlarm(EAlarm.TransferCylinder_Pick2Timeout);
+                    }
+                    Log.Debug("Cylinder2 Down Done");
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPickStep.Cylinders2_Up:
+                    Log.Debug("Cylinder2 Up");
+                    Wait(1000);
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPickStep.Cylinders2_Up_Wait:
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TransferCylinder_Place2Timeout);
+                    }
+                    Log.Debug("Cylinder2 Up Done");
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPickStep.End:
+                    Log.Debug("Pick End");
+                    Sequence = ESequence.Place;
+                    break;
             }
         }
 
-        private void Sequence_Unload()
+        private void Sequence_Place()
         {
-            switch ((ETransferProcessUnloadStep)Step.RunStep)
+            switch ((ETransferProcessPlaceStep)Step.RunStep)
             {
-                case ETransferProcessUnloadStep.Start:
-                    Log.Debug("Unload Start");
+                case ETransferProcessPlaceStep.Start:
+                    Log.Debug("Place Start");
                     Step.RunStep++;
                     break;
-                case ETransferProcessUnloadStep.XY_Axis_MoveUnloadPosition:
-                    Log.Debug("XY Axis Move to Unload Position");
-                    Wait(3000);
+                case ETransferProcessPlaceStep.XAxis_MovePlacePosition:
+                    Log.Debug("X Axis Move to Place Position");
+                    XAxis.MoveAbs(_recipeList.TransferRecipe.PlaceX);
+                    Wait(1000);
                     Step.RunStep++;
                     break;
-                case ETransferProcessUnloadStep.XY_Axis_MoveUnloadPosition_Wait:
-                    Log.Debug("XY Axis Move to Unload Position Done");
+                case ETransferProcessPlaceStep.XAxis_MovePlacePosition_Wait:
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TransferXAxis_PlaceTimeout);
+                    }
+                    Log.Debug("X Axis Move Place Position Done");
+                    break;
+                case ETransferProcessPlaceStep.YAxis_MovePlacePosition:
+                    Log.Debug("Y Axis Move to Place Position");
+                    YAxis.MoveAbs(_recipeList.TransferRecipe.PlaceY);
+                    Wait(1000);
                     Step.RunStep++;
                     break;
-                case ETransferProcessUnloadStep.ZAxis_MoveUnloadPosition:
-                    Log.Debug("Z Axis Move to Unload Position");
-                    Wait(5000);
+                case ETransferProcessPlaceStep.YAxis_MovePlacePosition_Wait:
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TransferYAxis_PlaceTimeout);
+                    }
+                    Log.Debug("Y Axis Move Place Position Done");
+                    break;
+                case ETransferProcessPlaceStep.ZAxis_MovePlacePosition:
+                    Log.Debug("Z Axis Move to Place Position");
+                    ZAxis.MoveAbs(_recipeList.TransferRecipe.PlaceZ);
+                    Wait(1000);
                     Step.RunStep++;
                     break;
-                case ETransferProcessUnloadStep.ZAxis_MoveUnloadPosition_Wait:
-                    Log.Debug("Z Axis Move to Unload Position Done");
+                case ETransferProcessPlaceStep.ZAxis_MovePlacePosition_Wait:
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TransferZAxis_PlaceTimeout);
+                    }
+                    Log.Debug("Z Axis Move Place Position Done");
+                    break;
+                case ETransferProcessPlaceStep.Cylinders_Down:
+                    Log.Debug("Cylinder Down");
+                    Cylinder1.Backward();
+                    Wait(1000);
                     Step.RunStep++;
                     break;
-                case ETransferProcessUnloadStep.End:
-                    Log.Debug("Unload End");
-                    //Sequence = ESequence.Load;
+                case ETransferProcessPlaceStep.Cylinders_Down_Wait:
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TransferCylinder_Place1Timeout);
+                    }
+                    _devices.Outputs.Vacuum1On.Value = false;
+                    _devices.Outputs.Vacuum1Blow.Value = false;
+                    Log.Debug("Cylinder Down Done");
+                    break;
+                case ETransferProcessPlaceStep.Cylinders_Up:
+                    Log.Debug("Cylinder Up");
+                    Wait(1000);
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPlaceStep.Cylinders_Up_Wait:
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TransferCylinder_Place1Timeout);
+                    }
+                    Log.Debug("Cylinder Up Done");
+                    break;
+                case ETransferProcessPlaceStep.End:
+                    Log.Debug("Place End");
+                    Sequence = ESequence.Pick;
                     break;
             }
         }

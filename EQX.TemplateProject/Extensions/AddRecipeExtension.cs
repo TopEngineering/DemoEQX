@@ -16,6 +16,7 @@ namespace EQX.TemplateProject.Extensions
             hostBuilder.ConfigureServices((hostContext, services) =>
             {
                 services.AddSingleton<CommonRecipe>();
+                services.AddSingleton<TransferRecipe>();
                 services.AddSingleton<RecipeList>();
                 services.AddSingleton<RecipeSelector>();
             });

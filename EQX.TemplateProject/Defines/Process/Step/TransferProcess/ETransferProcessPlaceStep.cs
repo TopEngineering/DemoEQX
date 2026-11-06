@@ -21,6 +21,9 @@ namespace EQX.TemplateProject.Defines.Process.Step.TransferProcess
         Cylinders_Down,
         Cylinders_Down_Wait,
 
+        Vacuum_Blow,
+        Vacuum_Blow_Wait,
+
         Cylinders_Up,
         Cylinders_Up_Wait,
 

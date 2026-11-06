@@ -16,12 +16,22 @@ namespace EQX.TemplateProject.Defines.Devices.Cylinder
 
         // Out CST
         public ICylinder OutCV_StopperCyl { get; }
+        public ICylinder TransferCylinder1 { get; }
+        public ICylinder TransferCylinder2 { get; }
 
         public Cylinders(ICylinderFactory cylinderFactory, Inputs inputs, Outputs outputs)
         {
             _cylinderFactory = cylinderFactory;
             _inputs = inputs;
             _outputs = outputs;
+            TransferCylinder1 = cylinderFactory.Create(inputs.Cylinder1Up, inputs.Cylinder1Down,
+                outputs.Cylinder1Up, outputs.Cylinder1Down)
+                .SetIdentity((int)ECylinder.PickHead1UpDown, nameof(ECylinder.PickHead1UpDown));
+            TransferCylinder2 = cylinderFactory.Create(inputs.Cylinder2Up, inputs.Cylinder2Down,
+                outputs.Cylinder2Up, outputs.Cylinder2Down)
+                .SetIdentity((int)ECylinder.PickHead2UpDown, nameof(ECylinder.PickHead2UpDown));
+            TransferCylinder1.CylinderType = ECylinderType.UpDown;
+            TransferCylinder2.CylinderType = ECylinderType.UpDown;
 
             // In CST
             InCV_StopperCyl = _cylinderFactory
