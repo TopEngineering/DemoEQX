@@ -207,7 +207,8 @@ namespace EQX.TemplateProject.MVVM.ViewModels
             }
         }
 
-        private void RecipeChanged_Handler(object oldValue, object newValue, string? propertyName = null)
+        private void RecipeChanged_Handler(object? oldValue, object? newValue, string? propertyName = null,
+            int parameterIndex = -1, PropertyInfo? propertyInfo = null)
         {
             Log.Info($"{propertyName} value updated : {oldValue} -> {newValue}");
         }

@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Input;
 using EQX.Core.Common;
 using EQX.UI.Controls;
 using System;
@@ -16,7 +16,7 @@ namespace EQX.TemplateProject.MVVM.ViewModels
     public class HeaderViewModel : ViewModelBase
     {
         private readonly INavigationService _navigationService;
-        private readonly ViewModelProvider _viewModelProvider;
+        private readonly IViewModelFactory _viewModelProvider;
 
         public Information Information { get; }
         public RecipeSelector RecipeSelector { get; }
@@ -35,14 +35,14 @@ namespace EQX.TemplateProject.MVVM.ViewModels
                     }
 
                     _navigationService.NavigateTo<InitDeinitViewModel>();
-                    _viewModelProvider.GetViewModel<InitDeinitViewModel>().Deinitialization();
+                    _viewModelProvider.Create<InitDeinitViewModel>().Deinitialization();
                 });
             }
         }
 
         public HeaderViewModel(Information information,
             INavigationService navigationService,
-            ViewModelProvider viewModelProvider,
+            IViewModelFactory viewModelProvider,
             RecipeSelector recipeSelector)
         {
             Information = information;

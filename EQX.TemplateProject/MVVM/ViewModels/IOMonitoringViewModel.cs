@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Input;
 using EQX.Core.Common;
 using EQX.TemplateProject.Defines;
 using EQX.TemplateProject.Process;
@@ -16,7 +16,7 @@ namespace EQX.TemplateProject.MVVM.ViewModels
     {
         public IOMonitoringViewModel(Inputs inputList, Outputs outputList,
             MachineStatus machineStatus,
-            ViewModelNavigationStore navigationStore)
+            NavigationStore navigationStore)
         {
             InputList = inputList;
             OutputList = outputList;
@@ -56,7 +56,7 @@ namespace EQX.TemplateProject.MVVM.ViewModels
         public int SelectedInputBoardNumber => SelectedInputDeviceIndex + 1;
 
         private int _selectedOutputDeviceIndex;
-        private readonly ViewModelNavigationStore _navigationStore;
+        private readonly NavigationStore _navigationStore;
 
         public int SelectedOutputDeviceIndex
         {

@@ -1,4 +1,4 @@
-﻿using EQX.Core.Common;
+using EQX.Core.Common;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using EQX.TemplateProject.Defines;
@@ -37,8 +37,8 @@ namespace EQX.TemplateProject.Extensions
                 services.AddViewModel<LoginViewModel>();
                 services.AddViewModel<DevViewModel>();
 
-                services.AddSingleton<ViewModelNavigationStore>();
-                services.AddTransient<ViewModelProvider>();
+                services.AddSingleton<NavigationStore>();
+                services.AddTransient<IViewModelFactory, ViewModelFactory>();
                 services.AddTransient<INavigationService, NavigationService>();
             });
 

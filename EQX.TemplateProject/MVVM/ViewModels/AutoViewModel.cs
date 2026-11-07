@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Input;
 using EQX.Core.Common;
 using EQX.Core.Sequence;
 using EQX.Device.Indicator;
@@ -23,7 +23,7 @@ namespace EQX.TemplateProject.MVVM.ViewModels
             Devices devices,
             RecipeSelector recipeSelector,
             UserStore userStore,
-            ViewModelNavigationStore navigationStore,
+            NavigationStore navigationStore,
             ILanguageService languageService)
         {
             MachineStatus = machineStatus;
@@ -99,7 +99,7 @@ namespace EQX.TemplateProject.MVVM.ViewModels
             {
                 return new RelayCommand(() =>
                 {
-                    var selected = RunModeDialog.ShowRunModeDialog(Enum.GetValues<EMachineRunMode>());
+                    var selected = RunModeDialog.ShowRunModeDialog(Enum.GetValues<EQX.TemplateProject.Process.EMachineRunMode>());
                     if (selected.HasValue)
                     {
                         MachineStatus.MachineRunMode = selected.Value;
@@ -253,7 +253,7 @@ namespace EQX.TemplateProject.MVVM.ViewModels
         #region Privates
         private readonly INavigationService _navigationService;
         private readonly NEOSHSDIndicator _nEOSHSDIndicator;
-        private readonly ViewModelNavigationStore _navigationStore;
+        private readonly NavigationStore _navigationStore;
         private readonly ILanguageService _languageService;
         System.Timers.Timer statusUpdateTimer;
         #endregion

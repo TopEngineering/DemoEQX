@@ -1,4 +1,4 @@
-﻿using EQX.Core.Common;
+using EQX.Core.Common;
 using EQX.TemplateProject.Defines;
 using EQX.TemplateProject.Defines.Devices;
 using EQX.TemplateProject.Process;
@@ -23,8 +23,8 @@ namespace EQX.TemplateProject.MVVM.ViewModels
         public Devices Devices { get; }
         #endregion
 
-        public MainWindowViewModel(ViewModelNavigationStore navigationStore,
-                                   ViewModelProvider viewModelProvider,
+        public MainWindowViewModel(NavigationStore navigationStore,
+                                   IViewModelFactory viewModelProvider,
                                    MachineStatus machineStatus,
                                    Devices devices)
         {
@@ -32,8 +32,8 @@ namespace EQX.TemplateProject.MVVM.ViewModels
             _viewModelProvider = viewModelProvider;
             _machineStatus = machineStatus;
             Devices = devices;
-            HeaderVM = _viewModelProvider.GetViewModel<HeaderViewModel>();
-            FooterVM = _viewModelProvider.GetViewModel<FooterViewModel>();
+            HeaderVM = _viewModelProvider.Create<HeaderViewModel>();
+            FooterVM = _viewModelProvider.Create<FooterViewModel>();
 
             _navigationStore.CurrentViewModelChanged += FrameNavigationStore_CurrentViewModelChanged;
         }
@@ -53,8 +53,8 @@ namespace EQX.TemplateProject.MVVM.ViewModels
         #region Private fields
         private readonly ViewModelBase _maintenanceVM;
 
-        private readonly ViewModelNavigationStore _navigationStore;
-        private readonly ViewModelProvider _viewModelProvider;
+        private readonly NavigationStore _navigationStore;
+        private readonly IViewModelFactory _viewModelProvider;
         private readonly MachineStatus _machineStatus;
         #endregion
     }

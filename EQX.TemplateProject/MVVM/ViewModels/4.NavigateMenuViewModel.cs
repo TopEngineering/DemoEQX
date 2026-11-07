@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Input;
 using EQX.Core.Common;
 using EQX.UI.Language;
 using System;
@@ -16,6 +16,11 @@ namespace EQX.TemplateProject.MVVM.ViewModels
     {
         #region Command(s)
         public ObservableCollection<NavigationButton> NavigationButtons { get; set; }
+        public ICommand NavigateToViewModelCommand => new RelayCommand<Type>(viewModelType =>
+        {
+            if (viewModelType != null)
+                _navigationService.NavigateTo(viewModelType);
+        });
         
         public IRelayCommand AutoNavigate
         {
@@ -105,7 +110,7 @@ namespace EQX.TemplateProject.MVVM.ViewModels
             {
                 return new RelayCommand(() =>
                 {
-                    _viewModelProvider.GetViewModel<HeaderViewModel>().ApplicationCloseCommand.Execute(null);
+                    _viewModelProvider.Create<HeaderViewModel>().ApplicationCloseCommand.Execute(null);
                 });
             }
         }
@@ -119,7 +124,7 @@ namespace EQX.TemplateProject.MVVM.ViewModels
 
         public NavigateMenuViewModel(INavigationService navigationService,
             UserStore userStore,
-            ViewModelProvider viewModelProvider)
+            IViewModelFactory viewModelProvider)
         {
             _navigationService = navigationService;
             _userStore = userStore;
@@ -136,19 +141,19 @@ namespace EQX.TemplateProject.MVVM.ViewModels
         {
             var buttons = new ObservableCollection<NavigationButton>
             {
-                new NavigationButton { Label = "Auto", Command = AutoNavigate, ImageKey = "image_auto_selected", DisabledImageKey = "image_auto_normal_dark" },
-                new NavigationButton { Label = "Manual", Command = ManualNavigate, ImageKey = "image_manual_selected", DisabledImageKey = "image_manual_normal_dark" },
-                new NavigationButton { Label = "Data", Command = DataNavigate, ImageKey = "image_data_selected", DisabledImageKey = "image_data_normal" }
+                new NavigationButton { Label = "Auto", ViewModelType = typeof(AutoViewModel), ImageKey = "image_auto_selected", DisabledImageKey = "image_auto_normal_dark" },
+                new NavigationButton { Label = "Manual", ViewModelType = typeof(ManualViewModel), ImageKey = "image_manual_selected", DisabledImageKey = "image_manual_normal_dark" },
+                new NavigationButton { Label = "Data", ViewModelType = typeof(DataViewModel), ImageKey = "image_data_selected", DisabledImageKey = "image_data_normal" }
             };
 
             if (_userStore.Permission != EPermission.Operator)
             {
-                buttons.Add(new NavigationButton { Label = "Teach", Command = TeachNavigate, ImageKey = "image_teach_selected", DisabledImageKey = "image_teach_normal" });
+                buttons.Add(new NavigationButton { Label = "Teach", ViewModelType = typeof(TeachViewModel), ImageKey = "image_teach_selected", DisabledImageKey = "image_teach_normal" });
             }
 
             if (_userStore.Permission == EPermission.SuperUser)
             {
-                buttons.Add(new NavigationButton { Label = "Dev", Command = DevNavigate, ImageKey = "square_auto_seleted", DisabledImageKey = "square_auto_normal" });
+                buttons.Add(new NavigationButton { Label = "Dev", ViewModelType = typeof(DevViewModel), ImageKey = "square_auto_seleted", DisabledImageKey = "square_auto_normal" });
             }
 
             NavigationButtons = buttons;
@@ -182,7 +187,7 @@ namespace EQX.TemplateProject.MVVM.ViewModels
         #region Privates
         private readonly INavigationService _navigationService;
         private readonly UserStore _userStore;
-        private readonly ViewModelProvider _viewModelProvider;
+        private readonly IViewModelFactory _viewModelProvider;
         private string _currentUserLabel = string.Empty;
         #endregion
     }

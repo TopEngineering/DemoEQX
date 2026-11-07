@@ -1,4 +1,4 @@
-﻿using EQX.Core.Common;
+using EQX.Core.Common;
 using System.Windows;
 using EQX.TemplateProject.MVVM.ViewModels;
 using EQX.TemplateProject.Process;
@@ -8,11 +8,11 @@ namespace EQX.TemplateProject.MVVM.Views
     public partial class MainWindowView : Window
     {
         private readonly INavigationService _navigationService;
-        private readonly ViewModelProvider _viewModelProvider;
+        private readonly IViewModelFactory _viewModelProvider;
         private readonly MachineStatus _machineStatus;
 
         public MainWindowView(INavigationService navigationService,
-            ViewModelProvider viewModelProvider,
+            IViewModelFactory viewModelProvider,
             MachineStatus machineStatus)
         {
             _navigationService = navigationService;
@@ -29,7 +29,7 @@ namespace EQX.TemplateProject.MVVM.Views
                 return;
             }
             _navigationService.NavigateTo<InitDeinitViewModel>();
-            _viewModelProvider.GetViewModel<InitDeinitViewModel>().Initialization();
+            _viewModelProvider.Create<InitDeinitViewModel>().Initialization();
 
         }
 
@@ -38,7 +38,7 @@ namespace EQX.TemplateProject.MVVM.Views
             if (Environment.ExitCode != 100)
             {
                 e.Cancel = true;
-                _viewModelProvider.GetViewModel<HeaderViewModel>().ApplicationCloseCommand.Execute(null);
+                _viewModelProvider.Create<HeaderViewModel>().ApplicationCloseCommand.Execute(null);
             }
         }
 

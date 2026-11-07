@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Input;
 using EQX.Core.Common;
 using EQX.TemplateProject.MVVM.ViewModels.Teaching;
 using EQX.TemplateProject.Process;
@@ -54,7 +54,7 @@ namespace EQX.TemplateProject.MVVM.ViewModels
         }
 
         public TeachViewModel(MachineStatus machineStatus,
-            ViewModelNavigationStore navigationStore,
+            NavigationStore navigationStore,
             TeachingViewModelFactory factory)
         {
             MachineStatus = machineStatus;
@@ -89,7 +89,7 @@ namespace EQX.TemplateProject.MVVM.ViewModels
         }
 
         #region Privates
-        private readonly ViewModelNavigationStore _navigationStore;
+        private readonly NavigationStore _navigationStore;
         private System.Timers.Timer _inoutUpdateTimer;
         private UnitTeachingViewModel selectedTeachingUnit;
         #endregion

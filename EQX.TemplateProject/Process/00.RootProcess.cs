@@ -1,4 +1,4 @@
-﻿using EQX.Core.Common;
+using EQX.Core.Common;
 using EQX.Core.Sequence;
 using EQX.Process;
 using EQX.UI.Controls;
@@ -18,7 +18,7 @@ namespace EQX.TemplateProject.Process
         #region Privates
         private readonly Devices _devices;
         private readonly MachineStatus _machineStatus;
-        private readonly ViewModelNavigationStore _viewModelavigationStore;
+        private readonly NavigationStore _viewModelavigationStore;
         private int raisedAlarmCode = -1;
         private int raisedWarningCode = -1;
         private readonly IAlertService _alarmService;
@@ -40,7 +40,7 @@ namespace EQX.TemplateProject.Process
         #region Constructor
         public RootProcess(Devices devices,
             MachineStatus machineStatus,
-            ViewModelNavigationStore viewModelavigationStore,
+            NavigationStore viewModelavigationStore,
             [FromKeyedServices("AlarmService")] IAlertService alarmService,
             [FromKeyedServices("WarningService")] IAlertService warningService)
         {

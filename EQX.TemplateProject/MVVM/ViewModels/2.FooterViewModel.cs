@@ -1,4 +1,4 @@
-﻿using EQX.Core.Common;
+using EQX.Core.Common;
 using System.Windows;
 
 namespace EQX.TemplateProject.MVVM.ViewModels
@@ -18,15 +18,15 @@ namespace EQX.TemplateProject.MVVM.ViewModels
             }
         }
 
-        public FooterViewModel(ViewModelNavigationStore viewModelNavigationStore,
-            ViewModelProvider viewModelProvider)
+        public FooterViewModel(NavigationStore viewModelNavigationStore,
+            IViewModelFactory viewModelProvider)
         {
             _viewModelNavigationStore = viewModelNavigationStore;
             _viewModelProvider = viewModelProvider;
 
             _viewModelNavigationStore.CurrentViewModelChanged += _viewModelNavigationStore_CurrentViewModelChanged;
 
-            NavigateVM = _viewModelProvider.GetViewModel<NavigateMenuViewModel>();
+            NavigateVM = _viewModelProvider.Create<NavigateMenuViewModel>();
         }
 
         private void _viewModelNavigationStore_CurrentViewModelChanged()
@@ -34,7 +34,7 @@ namespace EQX.TemplateProject.MVVM.ViewModels
             OnPropertyChanged(nameof(IsNavigationMenuHide));
         }
 
-        private readonly ViewModelNavigationStore _viewModelNavigationStore;
-        private readonly ViewModelProvider _viewModelProvider;
+        private readonly NavigationStore _viewModelNavigationStore;
+        private readonly IViewModelFactory _viewModelProvider;
     }
 }

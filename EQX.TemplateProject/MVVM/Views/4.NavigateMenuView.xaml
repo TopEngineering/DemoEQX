@@ -39,7 +39,8 @@
                     <ui:ImageRadioButton
                         GroupName="VMNavigateButton"
                         Content="{Binding Label}"
-                        Command="{Binding Command}"
+                        Command="{Binding DataContext.NavigateToViewModelCommand, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"
+                        CommandParameter="{Binding ViewModelType}"
                         DisabledImage="{Binding DisabledImageKey, Converter={StaticResource ImageKeyToImageConverter}}"
                         Image="{Binding ImageKey, Converter={StaticResource ImageKeyToImageConverter}}"/>
                 </DataTemplate>
