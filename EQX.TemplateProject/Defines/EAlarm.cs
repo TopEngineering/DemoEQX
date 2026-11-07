@@ -39,6 +39,13 @@
         Vacuum1_BlowTimeout,
         Vacuum2_BlowTimeout,
 
-        ShuttleXAxis_OriginTimeout = 500,
+        TransferCylinder1_ReadyTimeout,
+        TransferCylinder2_ReadyTimeout,
+        TransferZAxis_ReadyTimeout,
+        TransferInputTrayTimeout,
+        TransferOutputTrayTimeout,
+        TransferXAxis_ReadyTimeout,
+        TransferYAxis_ReadyTimeout,
+        TransferNotOrigin,
     }
 }
