@@ -3,10 +3,9 @@ using EQX.Core.Common;
 using EQX.Core.Motion;
 using EQX.Core.Recipe;
 using EQX.Motion;
-using EQX.Motion.ByVendor.Inovance;
 using EQX.UI.Controls;
-using EQX.TemplateProject.Defines;
 using EQX.TemplateProject.Recipe;
+using EQX.TemplateProject.Defines;
 using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Windows;
@@ -16,10 +15,11 @@ using System.IO;
 using Microsoft.Extensions.Configuration;
 using log4net;
 using EQX.TemplateProject.Process;
+using EQX.UI.Language;
 
 namespace EQX.TemplateProject.MVVM.ViewModels
 {
-    public class DataViewModel : ViewModelBase
+    public partial class DataViewModel : ViewModelBase
     {
         private string selectedModel;
         private RecipeBase _selectedRecipe;
@@ -28,22 +28,25 @@ namespace EQX.TemplateProject.MVVM.ViewModels
         public DataViewModel(RecipeSelector recipeSelector,
             Motions motions,
             IConfiguration configuration,
-            MachineStatus machineStatus)
+            MachineStatus machineStatus,
+            ILanguageService languageService)
         {
             RecipeSelector = recipeSelector;
             _motions = motions;
             _configuration = configuration;
             MachineStatus = machineStatus;
+            _languageService = languageService;
             Log = LogManager.GetLogger("Data");
 
             RecipeSelector.CurrentRecipe.CommonRecipe.RecipeChanged += RecipeChanged_Handler;
         }
 
-        public ObservableCollection<string> Cultures
+        private readonly ILanguageService _languageService;
+        public ObservableCollection<ILanguageDefinition> Cultures
         {
             get
             {
-                return new ObservableCollection<string>(new string[] { "English", "Vietnamese" });
+                return new ObservableCollection<ILanguageDefinition>(_languageService.AvailableLanguages);
             }
         }
         public ObservableCollection<IMotion> AllMotions
@@ -58,6 +61,7 @@ namespace EQX.TemplateProject.MVVM.ViewModels
         }
 
         public RecipeSelector RecipeSelector { get; }
+        public TransferRecipe TransferOptions => RecipeSelector.CurrentRecipe.TransferRecipe;
 
         public string SelectedModel
         {
@@ -106,20 +110,7 @@ namespace EQX.TemplateProject.MVVM.ViewModels
         public bool IsEnableSelectLanguage => SelectedRecipe is CommonRecipe;
         public MachineStatus MachineStatus { get; }
 
-        public RecipeBase CurrentRecipe
-        {
-            get
-            {
-                var recipeProps = RecipeSelector.CurrentRecipe.GetType()
-                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(p => typeof(RecipeBase).IsAssignableFrom(p.PropertyType))
-                .ToList();
-
-                return recipeProps
-                .Select(p => p.GetValue(RecipeSelector.CurrentRecipe) as RecipeBase)
-                .ToList().First(r => r.Name == SelectedRecipe.Name);
-            }
-        }
+        public RecipeBase CurrentRecipe => SelectedRecipe ?? RecipeSelector.CurrentRecipe.CommonRecipe;
 
         public ICommand SaveRecipeCommand
         {
@@ -129,8 +120,8 @@ namespace EQX.TemplateProject.MVVM.ViewModels
                 {
                     if (MessageBoxEx.ShowDialog((string)Application.Current.Resources["str_SaveAllData"]) == true)
                     {
+                        if (!MachineStatus.IsStandByProcessMode) return;
                         RecipeSelector.Save();
-                        //CassetteList.RecipeUpdateHandle();
                         OnPropertyChanged(nameof(Recipes));
                     }
                 });

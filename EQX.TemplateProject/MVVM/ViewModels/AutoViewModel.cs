@@ -1,7 +1,6 @@
-using CommunityToolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.Input;
 using EQX.Core.Common;
 using EQX.Core.Sequence;
-using EQX.Device.Indicator;
 using EQX.UI.Controls;
 using EQX.UI.Language;
 using log4net;
@@ -30,6 +29,8 @@ namespace EQX.TemplateProject.MVVM.ViewModels
             _navigationService = navigationService;
             Devices = devices;
             RecipeSelector = recipeSelector;
+            UpdateTrayLayout();
+            recipeSelector.RecipeLoaded += UpdateTrayLayout;
             UserStore = userStore;
             _navigationStore = navigationStore;
             _languageService = languageService;
@@ -80,9 +81,42 @@ namespace EQX.TemplateProject.MVVM.ViewModels
         public UserStore UserStore { get; }
 
         public string MachineRunModeDisplay => MachineStatus.MachineRunModeDisplay;
-        public double Temperature => _nEOSHSDIndicator.Temperature;
-        public double Humidity => _nEOSHSDIndicator.Humidity;
         #endregion
+
+        public ObservableCollection<int> InputCells { get; } = new();
+        public ObservableCollection<int> OutputCells { get; } = new();
+        public int InputColumns => _layoutRecipe?.InputColumns > 0 ? _layoutRecipe.InputColumns : 1;
+        public int OutputColumns => _layoutRecipe?.OutputColumns > 0 ? _layoutRecipe.OutputColumns : 1;
+        private TransferRecipe? _layoutRecipe;
+
+        private void UpdateTrayLayout()
+        {
+            if (Application.Current?.Dispatcher is { } dispatcher && !dispatcher.CheckAccess())
+            {
+                dispatcher.Invoke(UpdateTrayLayout);
+                return;
+            }
+            if (_layoutRecipe != null) _layoutRecipe.PropertyChanged -= TrayRecipeChanged;
+            _layoutRecipe = RecipeSelector.CurrentRecipe.TransferRecipe;
+            _layoutRecipe.PropertyChanged += TrayRecipeChanged;
+            InputCells.Clear();
+            OutputCells.Clear();
+            long inputCount = (long)_layoutRecipe.InputRows * _layoutRecipe.InputColumns;
+            long outputCount = (long)_layoutRecipe.OutputRows * _layoutRecipe.OutputColumns;
+            if (_layoutRecipe.InputRows > 0 && _layoutRecipe.InputColumns > 0 && inputCount <= 2500)
+                for (int i = 1; i <= inputCount; i++) InputCells.Add(i);
+            if (_layoutRecipe.OutputRows > 0 && _layoutRecipe.OutputColumns > 0 && outputCount <= 2500)
+                for (int i = 1; i <= outputCount; i++) OutputCells.Add(i);
+            OnPropertyChanged(nameof(InputColumns));
+            OnPropertyChanged(nameof(OutputColumns));
+        }
+
+        private void TrayRecipeChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName is nameof(TransferRecipe.InputRows) or nameof(TransferRecipe.InputColumns)
+                or nameof(TransferRecipe.OutputRows) or nameof(TransferRecipe.OutputColumns) or null or "")
+                UpdateTrayLayout();
+        }
 
         private void MachineStatusOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
@@ -252,7 +286,6 @@ namespace EQX.TemplateProject.MVVM.ViewModels
 
         #region Privates
         private readonly INavigationService _navigationService;
-        private readonly NEOSHSDIndicator _nEOSHSDIndicator;
         private readonly NavigationStore _navigationStore;
         private readonly ILanguageService _languageService;
         System.Timers.Timer statusUpdateTimer;

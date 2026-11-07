@@ -6,18 +6,16 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Reflection;
 using System.Windows;
 using EQX.UI.Language;
 
 namespace EQX.TemplateProject.Recipe
 {
-    public class RecipeSelector : ObservableObject
+    public partial class RecipeSelector : ObservableObject
     {
         #region Privates
         private RecipeSetting recipeSetting;
         private readonly IConfiguration _configuration;
-        private ObservableCollection<string> validRecipes;
 
         //[Minh]
         private readonly IAlertService _alarmService;
@@ -37,7 +35,6 @@ namespace EQX.TemplateProject.Recipe
             }
             set
             {
-                validRecipes = value;
                 OnPropertyChanged(nameof(ValidRecipes));
             }
         }
@@ -53,6 +50,7 @@ namespace EQX.TemplateProject.Recipe
         }
 
         public RecipeList CurrentRecipe { get; private set; }
+        public event Action? RecipeLoaded;
         #endregion
 
         #region Constructor
@@ -69,7 +67,7 @@ namespace EQX.TemplateProject.Recipe
             _warningService = warningService;
             _languageService = languageService;
 
-            currentRecipe.CommonRecipe.SelectedLanguageEvent += CommonRecipe_SelectedLanguageEvent; ;
+            currentRecipe.CommonRecipe.SelectedLanguageEvent += CommonRecipe_SelectedLanguageEvent;
         }
 
         private void CommonRecipe_SelectedLanguageEvent(ILanguageDefinition obj)
@@ -83,59 +81,40 @@ namespace EQX.TemplateProject.Recipe
         #region Methods
         public bool Load()
         {
-            // 1. Get Current Recipe
-            string recipeSettingFile = Path.Combine(recipeFolder, "RecipeSetting.json");
-            if (File.Exists(recipeSettingFile) == false)
-            {
-                MessageBox.Show($"{recipeSettingFile} file not found");
-                return false;
-            }
-
-            string currentRecipeFileContain = File.ReadAllText(recipeSettingFile);
-
             try
             {
-                RecipeSetting = JsonConvert.DeserializeObject<RecipeSetting>(currentRecipeFileContain);
+                var settingFile = Path.Combine(recipeFolder, "RecipeSetting.json");
+                var setting = JsonConvert.DeserializeObject<RecipeSetting>(File.ReadAllText(settingFile))
+                    ?? throw new FormatException("RecipeSetting.json is empty.");
+                var source = ReadRecipe(setting.CurrentRecipe);
+                ApplyRecipe(source);
+                RecipeSetting = setting;
+                RecipeLoaded?.Invoke();
+                return true;
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                MessageBoxEx.ShowDialog($"Cannot load recipe: {ex.Message}");
                 return false;
             }
+        }
 
-            // 2. Get Current Recipe
-            string currentRecipeFolder = Path.Combine(recipeFolder, RecipeSetting.CurrentRecipe);
-            string currentRecipeFile = Path.Combine(currentRecipeFolder, "Recipe.json");
-            if (Directory.Exists(currentRecipeFolder) == false)
-                MessageBox.Show($" Recipe folder \"{currentRecipeFolder}\" not found");
+        private RecipeList ReadRecipe(string name)
+        {
+            var folder = GetRecipeDirectory(name);
+            return JsonConvert.DeserializeObject<RecipeList>(
+                File.ReadAllText(Path.Combine(folder, "Recipe.json")),
+                new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto })
+                ?? throw new FormatException("Recipe.json is empty.");
+        }
 
-            var settings = new JsonSerializerSettings
+        private void ApplyRecipe(RecipeList source)
+        {
+            foreach (var property in typeof(RecipeList).GetProperties()
+                .Where(p => typeof(IRecipe).IsAssignableFrom(p.PropertyType)))
             {
-                TypeNameHandling = TypeNameHandling.Auto
-            };
-            try
-            {
-                RecipeList backupRecipe = JsonConvert.DeserializeObject<RecipeList>(File.ReadAllText(currentRecipeFile), settings);
-                PropertyInfo[] properties = CurrentRecipe.GetType().GetProperties();
-
-                foreach (PropertyInfo property in properties)
-                {
-                    try
-                    {
-                        ((IRecipe)property.GetValue(CurrentRecipe, null)).Clone((IRecipe)property.GetValue(backupRecipe, null));
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.Message);
-                        return false;
-                    }
-                }
+                ((IRecipe)property.GetValue(CurrentRecipe)!).Clone((IRecipe)property.GetValue(source)!);
             }
-            catch (Exception ex)
-            {
-                return false;
-            }
-            return true;
         }
 
         public void Copy(string selectedRecipe)
@@ -143,14 +122,11 @@ namespace EQX.TemplateProject.Recipe
             string recipeFolder = _configuration.GetValue<string>("Folders:RecipeFolder");
 
             string currentRecipeFolder = Path.Combine(recipeFolder, selectedRecipe);
-            string currentRecipeFile = Path.Combine(currentRecipeFolder, "Recipe.json");
-            if (Directory.Exists(currentRecipeFolder) == false)
-                MessageBox.Show($" Recipe folder \"{currentRecipeFolder}\" not found");
-            var settings = new JsonSerializerSettings
+            if (!Directory.Exists(currentRecipeFolder))
             {
-                TypeNameHandling = TypeNameHandling.Auto
-            };
-            RecipeList backupRecipe = JsonConvert.DeserializeObject<RecipeList>(File.ReadAllText(currentRecipeFile), settings);
+                MessageBox.Show($"Recipe folder {currentRecipeFolder} not found");
+                return;
+            }
             if (Directory.Exists($"{currentRecipeFolder}_Copy") == false)
             {
                 Directory.CreateDirectory($"{currentRecipeFolder}_Copy");
@@ -190,7 +166,9 @@ namespace EQX.TemplateProject.Recipe
         public ObservableCollection<string> UpdateValidRecipes()
         {
             ObservableCollection<string> validRecipes = new ObservableCollection<string>();
-            List<string> result = Directory.GetDirectories(recipeFolder, "", SearchOption.TopDirectoryOnly)
+            if (!Directory.Exists(recipeFolder)) return validRecipes;
+            List<string> result = Directory.GetDirectories(recipeFolder, "*", SearchOption.TopDirectoryOnly)
+                .Where(d => !Path.GetFileName(d).StartsWith(".") && File.Exists(Path.Combine(d, "Recipe.json")))
                 .Select(d => new DirectoryInfo(d).Name)
                 .ToList();
             foreach (var model in result)
@@ -203,20 +181,29 @@ namespace EQX.TemplateProject.Recipe
 
         public void SetCurrentModel(string selectedRecipe)
         {
-            string selectedRecipeFolder = Path.Combine(recipeFolder, selectedRecipe);
-            if (Directory.Exists(selectedRecipeFolder) == false)
+            var source = ReadRecipe(selectedRecipe);
+            var backup = JsonConvert.DeserializeObject<RecipeList>(JsonConvert.SerializeObject(CurrentRecipe))!;
+            var previousName = RecipeSetting.CurrentRecipe;
+            var settingPath = Path.Combine(recipeFolder, "RecipeSetting.json");
+            var temporaryPath = settingPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            try
             {
-                MessageBoxEx.ShowDialog($"{selectedRecipeFolder} folder not exits");
-                return;
+                ApplyRecipe(source);
+                RecipeSetting.CurrentRecipe = selectedRecipe;
+                File.WriteAllText(temporaryPath, JsonConvert.SerializeObject(RecipeSetting, Formatting.Indented));
+                File.Move(temporaryPath, settingPath, true);
             }
-            string tempRecipe = RecipeSetting.CurrentRecipe;
-            RecipeSetting.CurrentRecipe = selectedRecipe;
-            File.WriteAllText((Path.Combine(recipeFolder, "RecipeSetting.json")), JsonConvert.SerializeObject(RecipeSetting));
-            if (Load() == false)
+            catch
             {
-                RecipeSetting.CurrentRecipe = tempRecipe;
-                File.WriteAllText((Path.Combine(recipeFolder, "RecipeSetting.json")), JsonConvert.SerializeObject(RecipeSetting));
+                RecipeSetting.CurrentRecipe = previousName;
+                ApplyRecipe(backup);
+                throw;
             }
+            finally
+            {
+                if (File.Exists(temporaryPath)) File.Delete(temporaryPath);
+            }
+            RecipeLoaded?.Invoke();
         }
         #endregion
     }

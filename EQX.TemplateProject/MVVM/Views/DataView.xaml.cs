@@ -1,4 +1,4 @@
-﻿using EQX.Core.Motion;
+using EQX.Core.Motion;
 using EQX.Core.Recipe;
 using EQX.UI.Controls;
 using OpenCvSharp.Flann;
@@ -158,18 +158,20 @@ namespace EQX.TemplateProject.MVVM.Views
         }
 
 
+        private DataViewModel? _subscribedViewModel;
         private void DataView_Loaded(object sender, RoutedEventArgs e)
         {
+            if (_subscribedViewModel != null)
+                _subscribedViewModel.LoadRecipeEvent -= RefreshRecipeControls;
+            _subscribedViewModel = DataContext as DataViewModel;
+            if (_subscribedViewModel != null)
+                _subscribedViewModel.LoadRecipeEvent += RefreshRecipeControls;
+        }
 
-            if (this.DataContext is not DataViewModel viewModel) return;
-
-            viewModel.LoadRecipeEvent += () =>
-            {
-                if (viewModel.CurrentRecipe != null)
-                {
-                    LoadRecipe(viewModel.CurrentRecipe);
-                }
-            };
+        private void RefreshRecipeControls()
+        {
+            if (_subscribedViewModel != null)
+                LoadRecipe(_subscribedViewModel.CurrentRecipe);
         }
 
         private void ListBox_Loaded(object sender, RoutedEventArgs e)

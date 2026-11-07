@@ -20,7 +20,7 @@
                              Grid.Row="1"
                              HorizontalAlignment="Center">
                     <Button Content="{Binding CylinderType, Converter={StaticResource CylinderTypeToButtonNameConverter}, ConverterParameter=true}"
-                                              Command="{Binding DataContext.CylinderForwardCommand,ElementName=root}"
+                                              Command="{Binding DataContext.CylinderForwardCommand, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"
                                               Margin="2 0 2 0"
                                               FontSize="14"
                                               Height="35"
@@ -37,7 +37,7 @@
                     </Button>
 
                     <Button Content="{Binding CylinderType, Converter={StaticResource CylinderTypeToButtonNameConverter}, ConverterParameter=false}"
-                                              Command="{Binding DataContext.CylinderBackwardCommand,ElementName=root}"
+                                              Command="{Binding DataContext.CylinderBackwardCommand, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"
                                               Margin="2 0 2 0"
                                               FontSize="14"
                                               Height="35"

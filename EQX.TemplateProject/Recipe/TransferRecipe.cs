@@ -5,18 +5,78 @@ namespace EQX.TemplateProject.Recipe
 {
     public class TransferRecipe : RecipeBase
     {
-        private bool _Head2SetupConfirmed = false;
-        [SingleRecipeDescription(Description = "Head2SetupConfirmed")]
-        public bool Head2SetupConfirmed
+        private double _ReadyX = 0;
+        [SingleRecipeDescription(Description = "ReadyX", Unit = Unit.mm)]
+        public double ReadyX
         {
-            get => _Head2SetupConfirmed;
-            set
-            {
-                if (_Head2SetupConfirmed == value) return;
-                OnRecipeChanged(_Head2SetupConfirmed, value);
-                _Head2SetupConfirmed = value;
-                OnPropertyChanged();
-            }
+            get => _ReadyX;
+            set => SetRecipe(ref _ReadyX, value);
+        }
+
+        private double _ReadyY = 0;
+        [SingleRecipeDescription(Description = "ReadyY", Unit = Unit.mm)]
+        public double ReadyY
+        {
+            get => _ReadyY;
+            set => SetRecipe(ref _ReadyY, value);
+        }
+
+        private double _ReadyZ = 0;
+        [SingleRecipeDescription(Description = "ReadyZ", Unit = Unit.mm)]
+        public double ReadyZ
+        {
+            get => _ReadyZ;
+            set => SetRecipe(ref _ReadyZ, value);
+        }
+
+        private int _InputRows = 3;
+        [SingleRecipeDescription(Description = "InputRows")]
+        public int InputRows
+        {
+            get => _InputRows;
+            set => SetRecipe(ref _InputRows, value);
+        }
+        private int _InputColumns = 4;
+        [SingleRecipeDescription(Description = "InputColumns")]
+        public int InputColumns
+        {
+            get => _InputColumns;
+            set => SetRecipe(ref _InputColumns, value);
+        }
+        private int _OutputRows = 3;
+        [SingleRecipeDescription(Description = "OutputRows")]
+        public int OutputRows
+        {
+            get => _OutputRows;
+            set => SetRecipe(ref _OutputRows, value);
+        }
+        private int _OutputColumns = 4;
+        [SingleRecipeDescription(Description = "OutputColumns")]
+        public int OutputColumns
+        {
+            get => _OutputColumns;
+            set => SetRecipe(ref _OutputColumns, value);
+        }
+        private bool _SkipCylinder1 = false;
+        [SingleRecipeDescription(Description = "SkipCylinder1")]
+        public bool SkipCylinder1
+        {
+            get => _SkipCylinder1;
+            set => SetRecipe(ref _SkipCylinder1, value);
+        }
+        private bool _SkipCylinder2 = false;
+        [SingleRecipeDescription(Description = "SkipCylinder2")]
+        public bool SkipCylinder2
+        {
+            get => _SkipCylinder2;
+            set => SetRecipe(ref _SkipCylinder2, value);
+        }
+        private bool _SkipVacuumCheck = false;
+        [SingleRecipeDescription(Description = "SkipVacuumCheck")]
+        public bool SkipVacuumCheck
+        {
+            get => _SkipVacuumCheck;
+            set => SetRecipe(ref _SkipVacuumCheck, value);
         }
         private double _Pick2X = 0;
         [SingleRecipeDescription(Description = "Pick2X", Unit = Unit.mm)]
@@ -93,19 +153,6 @@ namespace EQX.TemplateProject.Recipe
                 if (_Place2Z == value) return;
                 OnRecipeChanged(_Place2Z, value);
                 _Place2Z = value;
-                OnPropertyChanged();
-            }
-        }
-        private bool _TransferSetupConfirmed = false;
-        [SingleRecipeDescription(Description = "TransferSetupConfirmed")]
-        public bool TransferSetupConfirmed
-        {
-            get => _TransferSetupConfirmed;
-            set
-            {
-                if (_TransferSetupConfirmed == value) return;
-                OnRecipeChanged(_TransferSetupConfirmed, value);
-                _TransferSetupConfirmed = value;
                 OnPropertyChanged();
             }
         }
