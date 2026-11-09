@@ -5,285 +5,114 @@ namespace EQX.TemplateProject.Recipe
 {
     public class TransferRecipe : RecipeBase
     {
-        private double _ReadyX = 0;
-        [SingleRecipeDescription(Description = "ReadyX", Unit = Unit.mm)]
-        public double ReadyX
-        {
-            get => _ReadyX;
-            set => SetRecipe(ref _ReadyX, value);
-        }
+        private double xAxisReadyPosition;
+        private double yAxisReadyPosition;
+        private double zAxisReadyPosition;
+        private double xAxisPickPosition;
+        private double yAxisPickPosition;
+        private double zAxisPickPosition;
+        private double xAxisPlacePosition;
+        private double yAxisPlacePosition;
+        private double zAxisPlacePosition;
 
-        private double _ReadyY = 0;
-        [SingleRecipeDescription(Description = "ReadyY", Unit = Unit.mm)]
-        public double ReadyY
-        {
-            get => _ReadyY;
-            set => SetRecipe(ref _ReadyY, value);
-        }
 
-        private double _ReadyZ = 0;
-        [SingleRecipeDescription(Description = "ReadyZ", Unit = Unit.mm)]
-        public double ReadyZ
+        [SingleRecipeDescription(Description = "X Axis Ready Position", Unit = Unit.mm)]
+        [SinglePositionTeaching(Motion = "XAxis")]
+        public double XAxisReadyPosition
         {
-            get => _ReadyZ;
-            set => SetRecipe(ref _ReadyZ, value);
-        }
-
-        private int _InputRows = 3;
-        [SingleRecipeDescription(Description = "InputRows")]
-        public int InputRows
-        {
-            get => _InputRows;
-            set => SetRecipe(ref _InputRows, value);
-        }
-        private int _InputColumns = 4;
-        [SingleRecipeDescription(Description = "InputColumns")]
-        public int InputColumns
-        {
-            get => _InputColumns;
-            set => SetRecipe(ref _InputColumns, value);
-        }
-        private int _OutputRows = 3;
-        [SingleRecipeDescription(Description = "OutputRows")]
-        public int OutputRows
-        {
-            get => _OutputRows;
-            set => SetRecipe(ref _OutputRows, value);
-        }
-        private int _OutputColumns = 4;
-        [SingleRecipeDescription(Description = "OutputColumns")]
-        public int OutputColumns
-        {
-            get => _OutputColumns;
-            set => SetRecipe(ref _OutputColumns, value);
-        }
-        private bool _SkipCylinder1 = false;
-        [SingleRecipeDescription(Description = "SkipCylinder1")]
-        public bool SkipCylinder1
-        {
-            get => _SkipCylinder1;
-            set => SetRecipe(ref _SkipCylinder1, value);
-        }
-        private bool _SkipCylinder2 = false;
-        [SingleRecipeDescription(Description = "SkipCylinder2")]
-        public bool SkipCylinder2
-        {
-            get => _SkipCylinder2;
-            set => SetRecipe(ref _SkipCylinder2, value);
-        }
-        private bool _SkipVacuumCheck = false;
-        [SingleRecipeDescription(Description = "SkipVacuumCheck")]
-        public bool SkipVacuumCheck
-        {
-            get => _SkipVacuumCheck;
-            set => SetRecipe(ref _SkipVacuumCheck, value);
-        }
-        private double _Pick2X = 0;
-        [SingleRecipeDescription(Description = "Pick2X", Unit = Unit.mm)]
-        public double Pick2X
-        {
-            get => _Pick2X;
+            get => xAxisReadyPosition;
             set
             {
-                if (_Pick2X == value) return;
-                OnRecipeChanged(_Pick2X, value);
-                _Pick2X = value;
-                OnPropertyChanged();
+                OnRecipeChanged(xAxisReadyPosition, value);
+                xAxisReadyPosition = value;
             }
         }
-        private double _Pick2Y = 0;
-        [SingleRecipeDescription(Description = "Pick2Y", Unit = Unit.mm)]
-        public double Pick2Y
+        [SingleRecipeDescription(Description = "Y Axis Ready Position", Unit = Unit.mm)]
+        [SinglePositionTeaching(Motion = "YAxis")]
+        public double YAxisReadyPosition
         {
-            get => _Pick2Y;
+            get => yAxisReadyPosition;
             set
             {
-                if (_Pick2Y == value) return;
-                OnRecipeChanged(_Pick2Y, value);
-                _Pick2Y = value;
-                OnPropertyChanged();
+                OnRecipeChanged(yAxisReadyPosition, value);
+                yAxisReadyPosition = value;
             }
         }
-        private double _Pick2Z = 0;
-        [SingleRecipeDescription(Description = "Pick2Z", Unit = Unit.mm)]
-        public double Pick2Z
+        [SingleRecipeDescription(Description = "Z Axis Ready Position", Unit = Unit.mm)]
+        [SinglePositionTeaching(Motion = "ZAxis")]
+        public double ZAxisReadyPosition
         {
-            get => _Pick2Z;
+            get => zAxisReadyPosition;
             set
             {
-                if (_Pick2Z == value) return;
-                OnRecipeChanged(_Pick2Z, value);
-                _Pick2Z = value;
-                OnPropertyChanged();
+                OnRecipeChanged(zAxisReadyPosition, value);
+                zAxisReadyPosition = value;
             }
         }
-        private double _Place2X = 0;
-        [SingleRecipeDescription(Description = "Place2X", Unit = Unit.mm)]
-        public double Place2X
+        [SingleRecipeDescription(Description = "X Axis Pick Position", Unit = Unit.mm)]
+        [SinglePositionTeaching(Motion = "XAxis")]
+        public double XAxisPickPosition
         {
-            get => _Place2X;
+            get => xAxisPickPosition;
             set
             {
-                if (_Place2X == value) return;
-                OnRecipeChanged(_Place2X, value);
-                _Place2X = value;
-                OnPropertyChanged();
+                OnRecipeChanged(xAxisPickPosition, value);
+                xAxisPickPosition = value;
             }
         }
-        private double _Place2Y = 0;
-        [SingleRecipeDescription(Description = "Place2Y", Unit = Unit.mm)]
-        public double Place2Y
+        [SingleRecipeDescription(Description = "Y Axis Pick Position", Unit = Unit.mm)]
+        [SinglePositionTeaching(Motion = "YAxis")]
+        public double YAxisPickPosition
         {
-            get => _Place2Y;
+            get => yAxisPickPosition;
             set
             {
-                if (_Place2Y == value) return;
-                OnRecipeChanged(_Place2Y, value);
-                _Place2Y = value;
-                OnPropertyChanged();
+                OnRecipeChanged(yAxisPickPosition, value);
+                yAxisPickPosition = value;
             }
         }
-        private double _Place2Z = 0;
-        [SingleRecipeDescription(Description = "Place2Z", Unit = Unit.mm)]
-        public double Place2Z
+        [SingleRecipeDescription(Description = "Z Axis Pick Position", Unit = Unit.mm)]
+        [SinglePositionTeaching(Motion = "ZAxis")]
+        public double ZAxisPickPosition
         {
-            get => _Place2Z;
+            get => zAxisPickPosition;
             set
             {
-                if (_Place2Z == value) return;
-                OnRecipeChanged(_Place2Z, value);
-                _Place2Z = value;
-                OnPropertyChanged();
+                OnRecipeChanged(zAxisPickPosition, value);
+                zAxisPickPosition = value;
             }
         }
-        private double _PickX = 0;
-        [SingleRecipeDescription(Description = "PickX", Unit = Unit.mm)]
-        public double PickX
+        [SingleRecipeDescription(Description = "X Axis Place Position", Unit = Unit.mm)]
+        [SinglePositionTeaching(Motion = "XAxis")]
+        public double XAxisPlacePosition
         {
-            get => _PickX;
-            set
+            get => xAxisPlacePosition;
+            set 
             {
-                if (_PickX == value) return;
-                OnRecipeChanged(_PickX, value);
-                _PickX = value;
-                OnPropertyChanged();
+                OnRecipeChanged(xAxisPlacePosition, value);
+                xAxisPlacePosition = value;
             }
         }
-        private double _PickY = 0;
-        [SingleRecipeDescription(Description = "PickY", Unit = Unit.mm)]
-        public double PickY
+        [SingleRecipeDescription(Description = "Y Axis Place Position", Unit = Unit.mm)]
+        [SinglePositionTeaching(Motion = "YAxis")]
+        public double YAxisPlacePosition
         {
-            get => _PickY;
+            get => yAxisPlacePosition;
             set
             {
-                if (_PickY == value) return;
-                OnRecipeChanged(_PickY, value);
-                _PickY = value;
-                OnPropertyChanged();
+                OnRecipeChanged(yAxisPlacePosition, value);
+                yAxisPlacePosition = value;
             }
         }
-        private double _PickZ = 0;
-        [SingleRecipeDescription(Description = "PickZ", Unit = Unit.mm)]
-        public double PickZ
+        [SingleRecipeDescription(Description = "Z Axis Place Position")]
+        [SinglePositionTeaching(Motion = "ZAxis")]
+        public double ZAxisPlacePosition
         {
-            get => _PickZ;
+            get => zAxisPlacePosition;
             set
             {
-                if (_PickZ == value) return;
-                OnRecipeChanged(_PickZ, value);
-                _PickZ = value;
-                OnPropertyChanged();
-            }
-        }
-        private double _PlaceX = 0;
-        [SingleRecipeDescription(Description = "PlaceX", Unit = Unit.mm)]
-        public double PlaceX
-        {
-            get => _PlaceX;
-            set
-            {
-                if (_PlaceX == value) return;
-                OnRecipeChanged(_PlaceX, value);
-                _PlaceX = value;
-                OnPropertyChanged();
-            }
-        }
-        private double _PlaceY = 0;
-        [SingleRecipeDescription(Description = "PlaceY", Unit = Unit.mm)]
-        public double PlaceY
-        {
-            get => _PlaceY;
-            set
-            {
-                if (_PlaceY == value) return;
-                OnRecipeChanged(_PlaceY, value);
-                _PlaceY = value;
-                OnPropertyChanged();
-            }
-        }
-        private double _PlaceZ = 0;
-        [SingleRecipeDescription(Description = "PlaceZ", Unit = Unit.mm)]
-        public double PlaceZ
-        {
-            get => _PlaceZ;
-            set
-            {
-                if (_PlaceZ == value) return;
-                OnRecipeChanged(_PlaceZ, value);
-                _PlaceZ = value;
-                OnPropertyChanged();
-            }
-        }
-        private double _TravelZ = 0;
-        [SingleRecipeDescription(Description = "TravelZ", Unit = Unit.mm)]
-        public double TravelZ
-        {
-            get => _TravelZ;
-            set
-            {
-                if (_TravelZ == value) return;
-                OnRecipeChanged(_TravelZ, value);
-                _TravelZ = value;
-                OnPropertyChanged();
-            }
-        }
-        private double _TransferSpeed = 10;
-        [SingleRecipeDescription(Description = "TransferSpeed", Unit = Unit.mmPerSecond)]
-        public double TransferSpeed
-        {
-            get => _TransferSpeed;
-            set
-            {
-                if (_TransferSpeed == value) return;
-                OnRecipeChanged(_TransferSpeed, value);
-                _TransferSpeed = value;
-                OnPropertyChanged();
-            }
-        }
-        private double _VacuumTimeout = 3;
-        [SingleRecipeDescription(Description = "VacuumTimeout", Unit = Unit.Second)]
-        public double VacuumTimeout
-        {
-            get => _VacuumTimeout;
-            set
-            {
-                if (_VacuumTimeout == value) return;
-                OnRecipeChanged(_VacuumTimeout, value);
-                _VacuumTimeout = value;
-                OnPropertyChanged();
-            }
-        }
-        private double _BlowTime = 0.2;
-        [SingleRecipeDescription(Description = "BlowTime", Unit = Unit.Second)]
-        public double BlowTime
-        {
-            get => _BlowTime;
-            set
-            {
-                if (_BlowTime == value) return;
-                OnRecipeChanged(_BlowTime, value);
-                _BlowTime = value;
-                OnPropertyChanged();
+                OnRecipeChanged(zAxisPlacePosition, value);
+                zAxisPlacePosition = value;
             }
         }
     }

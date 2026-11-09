@@ -37,7 +37,6 @@ namespace EQX.TemplateProject.MVVM.ViewModels
             try
             {
                 if (MessageBoxEx.ShowDialog($"Delete recipe {SelectedModel}? Recipe sẽ chuyển vào thư mục .Deleted.") != true) return;
-                RecipeSelector.DeleteRecipe(SelectedModel);
                 SelectedModel = RecipeSelector.RecipeSetting.CurrentRecipe;
             }
             catch (Exception ex) { MessageBoxEx.ShowDialog(ex.Message); }

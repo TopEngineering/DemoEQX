@@ -255,7 +255,7 @@ namespace EQX.TemplateProject.Process
                     break;
                 case ETransferProcessReadyStep.XAxis_MoveReadyPosition:
                     Log.Debug("Ready X Axis Move Ready Position");
-                    if (!XAxis.MoveAbs(_recipeList.TransferRecipe.ReadyX, _recipeList.TransferRecipe.TransferSpeed))
+                    if (!XAxis.MoveAbs(_recipeList.TransferRecipe.XAxisReadyPosition))
                     { RaiseAlarm(EAlarm.TransferXAxis_PickTimeout); return; }
 #if SIMULATION
                     Wait(200);
@@ -274,7 +274,7 @@ namespace EQX.TemplateProject.Process
                     break;
                 case ETransferProcessReadyStep.YAxis_MoveReadyPosition:
                     Log.Debug("Ready Y Axis Move Ready Position");
-                    if (!YAxis.MoveAbs(_recipeList.TransferRecipe.ReadyY, _recipeList.TransferRecipe.TransferSpeed))
+                    if (!YAxis.MoveAbs(_recipeList.TransferRecipe.YAxisReadyPosition))
                     { RaiseAlarm(EAlarm.TransferYAxis_ReadyTimeout); return; }
 #if SIMULATION
                     Wait(200);
@@ -293,7 +293,7 @@ namespace EQX.TemplateProject.Process
                     break;
                 case ETransferProcessReadyStep.ZAxis_MoveReadyPosition:
                     Log.Debug("Ready Z Axis Move Ready Position");
-                    if (!ZAxis.MoveAbs(_recipeList.TransferRecipe.ReadyZ, _recipeList.TransferRecipe.TransferSpeed))
+                    if (!ZAxis.MoveAbs(_recipeList.TransferRecipe.ZAxisReadyPosition))
                     { RaiseAlarm(EAlarm.TransferZAxis_ReadyTimeout); return; }
 #if SIMULATION
                     Wait(200);
@@ -328,7 +328,7 @@ namespace EQX.TemplateProject.Process
                     break;
                 case ETransferProcessPickStep.XAxis_MovePickPosition:
                     Log.Debug("X Axis Move to Pick Position");
-                    XAxis.MoveAbs(_recipeList.TransferRecipe.PickX);
+                    XAxis.MoveAbs(_recipeList.TransferRecipe.XAxisPickPosition);
 #if SIMULATION
                     Wait(100);
 #else
@@ -350,7 +350,7 @@ namespace EQX.TemplateProject.Process
                     break;
                 case ETransferProcessPickStep.YAxis_MovePickPosition:
                     Log.Debug("Y Axis Move to Pick Position");
-                    YAxis.MoveAbs(_recipeList.TransferRecipe.PickY);
+                    YAxis.MoveAbs(_recipeList.TransferRecipe.YAxisPickPosition);
 #if SIMULATION
                     Wait(100);
 #else
@@ -372,7 +372,7 @@ namespace EQX.TemplateProject.Process
                     break;
                 case ETransferProcessPickStep.ZAxis_MovePickPosition:
                     Log.Debug("Z Axis Move to Pick Position");
-                    ZAxis.MoveAbs(_recipeList.TransferRecipe.PickZ);
+                    ZAxis.MoveAbs(_recipeList.TransferRecipe.ZAxisPlacePosition);
 #if SIMULATION
                     Wait(100);
 #else
@@ -512,7 +512,7 @@ namespace EQX.TemplateProject.Process
                     break;
                 case ETransferProcessPlaceStep.XAxis_MovePlacePosition:
                     Log.Debug("X Axis Move to Place Position");
-                    XAxis.MoveAbs(_recipeList.TransferRecipe.PlaceX);
+                    XAxis.MoveAbs(_recipeList.TransferRecipe.XAxisPlacePosition);
 #if SIMULATION
                     Wait(100);
 #else
@@ -534,7 +534,7 @@ namespace EQX.TemplateProject.Process
                     break;
                 case ETransferProcessPlaceStep.YAxis_MovePlacePosition:
                     Log.Debug("Y Axis Move to Place Position");
-                    YAxis.MoveAbs(_recipeList.TransferRecipe.PlaceY);
+                    YAxis.MoveAbs(_recipeList.TransferRecipe.YAxisPlacePosition);
 #if SIMULATION
                     Wait(100);
 #else
@@ -556,7 +556,7 @@ namespace EQX.TemplateProject.Process
                     break;
                 case ETransferProcessPlaceStep.ZAxis_MovePlacePosition:
                     Log.Debug("Z Axis Move to Place Position");
-                    ZAxis.MoveAbs(_recipeList.TransferRecipe.PlaceZ);
+                    ZAxis.MoveAbs(_recipeList.TransferRecipe.ZAxisPlacePosition);
 #if SIMULATION
                     Wait(100);
 #else

@@ -30,8 +30,6 @@ namespace EQX.TemplateProject.MVVM.ViewModels
             _navigationService = navigationService;
             Devices = devices;
             RecipeSelector = recipeSelector;
-            UpdateTrayLayout();
-            recipeSelector.RecipeLoaded += UpdateTrayLayout;
             UserStore = userStore;
             _navigationStore = navigationStore;
             _languageService = languageService;
@@ -86,38 +84,8 @@ namespace EQX.TemplateProject.MVVM.ViewModels
 
         public ObservableCollection<TrayCell> InputCells { get; } = new();
         public ObservableCollection<TrayCell> OutputCells { get; } = new();
-        public int InputColumns => _layoutRecipe?.InputColumns > 0 ? _layoutRecipe.InputColumns : 1;
-        public int OutputColumns => _layoutRecipe?.OutputColumns > 0 ? _layoutRecipe.OutputColumns : 1;
+
         private TransferRecipe? _layoutRecipe;
-
-        private void UpdateTrayLayout()
-        {
-            if (Application.Current?.Dispatcher is { } dispatcher && !dispatcher.CheckAccess())
-            {
-                dispatcher.Invoke(UpdateTrayLayout);
-                return;
-            }
-            if (_layoutRecipe != null) _layoutRecipe.PropertyChanged -= TrayRecipeChanged;
-            _layoutRecipe = RecipeSelector.CurrentRecipe.TransferRecipe;
-            _layoutRecipe.PropertyChanged += TrayRecipeChanged;
-            InputCells.Clear();
-            OutputCells.Clear();
-            long inputCount = (long)_layoutRecipe.InputRows * _layoutRecipe.InputColumns;
-            long outputCount = (long)_layoutRecipe.OutputRows * _layoutRecipe.OutputColumns;
-            if (_layoutRecipe.InputRows > 0 && _layoutRecipe.InputColumns > 0 && inputCount <= 2500)
-                for (int i = 1; i <= inputCount; i++) InputCells.Add(new TrayCell(i));
-            if (_layoutRecipe.OutputRows > 0 && _layoutRecipe.OutputColumns > 0 && outputCount <= 2500)
-                for (int i = 1; i <= outputCount; i++) OutputCells.Add(new TrayCell(i));
-            OnPropertyChanged(nameof(InputColumns));
-            OnPropertyChanged(nameof(OutputColumns));
-        }
-
-        private void TrayRecipeChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName is nameof(TransferRecipe.InputRows) or nameof(TransferRecipe.InputColumns)
-                or nameof(TransferRecipe.OutputRows) or nameof(TransferRecipe.OutputColumns) or null or "")
-                UpdateTrayLayout();
-        }
 
         private void MachineStatusOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {

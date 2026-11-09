@@ -17,6 +17,7 @@ namespace EQX.TemplateProject.Extensions
             {
                 services.AddSingleton<CommonRecipe>();
                 services.AddSingleton<TransferRecipe>();
+                services.AddSingleton<TrayRecipe>();
                 services.AddSingleton<RecipeList>();
                 services.AddSingleton<RecipeSelector>();
             });
