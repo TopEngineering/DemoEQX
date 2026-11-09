@@ -7,6 +7,7 @@ using log4net;
 using EQX.TemplateProject.Defines.Devices;
 using EQX.TemplateProject.Process;
 using EQX.TemplateProject.Recipe;
+using EQX.TemplateProject.MVVM.Models;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows;
@@ -83,8 +84,8 @@ namespace EQX.TemplateProject.MVVM.ViewModels
         public string MachineRunModeDisplay => MachineStatus.MachineRunModeDisplay;
         #endregion
 
-        public ObservableCollection<int> InputCells { get; } = new();
-        public ObservableCollection<int> OutputCells { get; } = new();
+        public ObservableCollection<TrayCell> InputCells { get; } = new();
+        public ObservableCollection<TrayCell> OutputCells { get; } = new();
         public int InputColumns => _layoutRecipe?.InputColumns > 0 ? _layoutRecipe.InputColumns : 1;
         public int OutputColumns => _layoutRecipe?.OutputColumns > 0 ? _layoutRecipe.OutputColumns : 1;
         private TransferRecipe? _layoutRecipe;
@@ -104,9 +105,9 @@ namespace EQX.TemplateProject.MVVM.ViewModels
             long inputCount = (long)_layoutRecipe.InputRows * _layoutRecipe.InputColumns;
             long outputCount = (long)_layoutRecipe.OutputRows * _layoutRecipe.OutputColumns;
             if (_layoutRecipe.InputRows > 0 && _layoutRecipe.InputColumns > 0 && inputCount <= 2500)
-                for (int i = 1; i <= inputCount; i++) InputCells.Add(i);
+                for (int i = 1; i <= inputCount; i++) InputCells.Add(new TrayCell(i));
             if (_layoutRecipe.OutputRows > 0 && _layoutRecipe.OutputColumns > 0 && outputCount <= 2500)
-                for (int i = 1; i <= outputCount; i++) OutputCells.Add(i);
+                for (int i = 1; i <= outputCount; i++) OutputCells.Add(new TrayCell(i));
             OnPropertyChanged(nameof(InputColumns));
             OnPropertyChanged(nameof(OutputColumns));
         }

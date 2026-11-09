@@ -1,3 +1,4 @@
+using EQX.TemplateProject.MVVM.Models;
 using EQX.Core.InOut;
 using EQX.Core.Motion;
 using EQX.Core.Sequence;
@@ -47,7 +48,8 @@ namespace EQX.TemplateProject.Process
         #region Constructor
         public TransferProcess(Devices devices,
             VirtualIO virtualIO,
-            RecipeList recipeList)
+            RecipeList recipeList,
+            MachineStatus machineStatus)
         {
             _devices = devices;
             _virtualIO = virtualIO;
@@ -210,7 +212,7 @@ namespace EQX.TemplateProject.Process
                     break;
                 case ETransferProcessReadyStep.CheckOriginDone:
                     Log.Debug("Ready Check Origin Done");
-                    if (ProcessStatus != EProcessStatus.OriginDone)
+                    if (!XAxis.Status.IsHomeDone || !YAxis.Status.IsHomeDone || !ZAxis.Status.IsHomeDone)
                     {
                         RaiseAlarm(EAlarm.TransferNotOrigin);
                         return;
@@ -328,7 +330,7 @@ namespace EQX.TemplateProject.Process
                     Log.Debug("X Axis Move to Pick Position");
                     XAxis.MoveAbs(_recipeList.TransferRecipe.PickX);
 #if SIMULATION
-                    Wait(1000);
+                    Wait(100);
 #else
                     Wait((int)(_recipeList.CommonRecipe.MotionMoveTimeOut * 1000),
                         () => XAxis.IsOnPosition(_recipeList.TransferRecipe.PickX));
@@ -350,7 +352,7 @@ namespace EQX.TemplateProject.Process
                     Log.Debug("Y Axis Move to Pick Position");
                     YAxis.MoveAbs(_recipeList.TransferRecipe.PickY);
 #if SIMULATION
-                    Wait(1000);
+                    Wait(100);
 #else
                     Wait((int)(_recipeList.CommonRecipe.MotionMoveTimeOut * 1000),
                         () => YAxis.IsOnPosition(_recipeList.TransferRecipe.PickY));
@@ -372,7 +374,7 @@ namespace EQX.TemplateProject.Process
                     Log.Debug("Z Axis Move to Pick Position");
                     ZAxis.MoveAbs(_recipeList.TransferRecipe.PickZ);
 #if SIMULATION
-                    Wait(1000);
+                    Wait(100);
 #else
                     Wait((int)(_recipeList.CommonRecipe.MotionMoveTimeOut * 1000),
                         () => ZAxis.IsOnPosition(_recipeList.TransferRecipe.PickZ));
@@ -392,7 +394,8 @@ namespace EQX.TemplateProject.Process
                     break;
                 case ETransferProcessPickStep.Cylinders1_Down:
                     Log.Debug("Cylinder1 Down");
-                    Wait(1000);
+                    _devices.Outputs.Cylinder1Down.Value = true;
+                    Wait(100);
                     Step.RunStep++;
                     break;
                 case ETransferProcessPickStep.Cylinders1_Down_Wait:
@@ -408,7 +411,8 @@ namespace EQX.TemplateProject.Process
                     break;
                 case ETransferProcessPickStep.Vacuum1_On:
                     Log.Debug("Vacuum1 On");
-                    Wait(1000);
+                    _devices.Outputs.Vacuum1On.Value = true;
+                    Wait(100);
                     Step.RunStep++;
                     break;
                 case ETransferProcessPickStep.Vacuum1_On_Wait:
@@ -424,7 +428,8 @@ namespace EQX.TemplateProject.Process
                     break;
                 case ETransferProcessPickStep.Cylinders1_Up:
                     Log.Debug("Cylinder1 Up");
-                    Wait(1000);
+                    _devices.Outputs.Cylinder1Up.Value = true;
+                    Wait(100);
                     Step.RunStep++;
                     break;
                 case ETransferProcessPickStep.Cylinders1_Up_Wait:
@@ -440,7 +445,8 @@ namespace EQX.TemplateProject.Process
                     break;
                 case ETransferProcessPickStep.Cylinders2_Down:
                     Log.Debug("Cylinder2 Down");
-                    Wait(1000);
+                    _devices.Outputs.Cylinder2Down.Value = true;
+                    Wait(100);
                     Step.RunStep++;
                     break;
                 case ETransferProcessPickStep.Cylinders2_Down_Wait:
@@ -454,9 +460,27 @@ namespace EQX.TemplateProject.Process
                     Log.Debug("Cylinder2 Down Done");
                     Step.RunStep++;
                     break;
+                case ETransferProcessPickStep.Vacuum2_On:
+                    Log.Debug("Vaccum 2 On");
+                    _devices.Outputs.Vacuum2On.Value = true;
+                    Wait(100);
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPickStep.Vacuum2_On_Wait:
+#if !SIMULATION 
+                    if (WaitTimeOutOccurred)
+                    { 
+                        RaiseAlarm((int)EAlarm.Vacuum2_OnTimeout);
+                        return;
+                    }
+#endif
+                    Log.Debug("Vaccum 2 On Done");
+                    Step.RunStep++;
+                    break;
                 case ETransferProcessPickStep.Cylinders2_Up:
                     Log.Debug("Cylinder2 Up");
-                    Wait(1000);
+                    _devices.Outputs.Cylinder2Up.Value = true;
+                    Wait(100);
                     Step.RunStep++;
                     break;
                 case ETransferProcessPickStep.Cylinders2_Up_Wait:
@@ -473,6 +497,7 @@ namespace EQX.TemplateProject.Process
                 case ETransferProcessPickStep.End:
                     Log.Debug("Pick End");
                     Sequence = ESequence.Place;
+                    Step.RunStep++;
                     break;
             }
         }
@@ -489,7 +514,7 @@ namespace EQX.TemplateProject.Process
                     Log.Debug("X Axis Move to Place Position");
                     XAxis.MoveAbs(_recipeList.TransferRecipe.PlaceX);
 #if SIMULATION
-                    Wait(1000);
+                    Wait(100);
 #else
                     Wait((int)(_recipeList.CommonRecipe.MotionMoveTimeOut * 1000),
                         () => XAxis.IsOnPosition(_recipeList.TransferRecipe.PlaceX));
@@ -511,7 +536,7 @@ namespace EQX.TemplateProject.Process
                     Log.Debug("Y Axis Move to Place Position");
                     YAxis.MoveAbs(_recipeList.TransferRecipe.PlaceY);
 #if SIMULATION
-                    Wait(1000);
+                    Wait(100);
 #else
                     Wait((int)(_recipeList.CommonRecipe.MotionMoveTimeOut * 1000),
                         () => YAxis.IsOnPosition(_recipeList.TransferRecipe.PlaceY));
@@ -533,7 +558,7 @@ namespace EQX.TemplateProject.Process
                     Log.Debug("Z Axis Move to Place Position");
                     ZAxis.MoveAbs(_recipeList.TransferRecipe.PlaceZ);
 #if SIMULATION
-                    Wait(1000);
+                    Wait(100);
 #else
                     Wait((int)(_recipeList.CommonRecipe.MotionMoveTimeOut * 1000),
                         () => ZAxis.IsOnPosition(_recipeList.TransferRecipe.PlaceZ));
@@ -551,13 +576,13 @@ namespace EQX.TemplateProject.Process
                     Log.Debug("Z Axis Move Place Position Done");
                     Step.RunStep++;
                     break;
-                case ETransferProcessPlaceStep.Cylinders_Down:
-                    Log.Debug("Cylinder Down");
-                    Cylinder1.Backward();
-                    Wait(1000);
+                case ETransferProcessPlaceStep.Cylinders1_Down:
+                    Log.Debug("Cylinder 1 Down");
+                    _devices.Outputs.Cylinder1Down.Value = true;
+                    Wait(100);
                     Step.RunStep++;
                     break;
-                case ETransferProcessPlaceStep.Cylinders_Down_Wait:
+                case ETransferProcessPlaceStep.Cylinders1_Down_Wait:
 #if !SIMULATION
                     if (WaitTimeOutOccurred)
                     {
@@ -565,17 +590,35 @@ namespace EQX.TemplateProject.Process
                         return;
                     }
 #endif
-                    _devices.Outputs.Vacuum1On.Value = false;
+                    Log.Debug("Cylinder 1 Down Done");
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPlaceStep.Vacuum1_Blow:
+                    Log.Debug("Vaccum 1 Blow On");
+                    _devices.Outputs.Vacuum1Blow.Value = true;
+                    Wait(100);
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPlaceStep.Vacuum1_Blow_Wait:
+ #if !SIMULATION
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.Vacuum1_BlowTimeout);
+                        return;
+                    }
+#endif
+                    Log.Debug("Vaccum Blow On Done");
+                    Wait(100);
                     _devices.Outputs.Vacuum1Blow.Value = false;
-                    Log.Debug("Cylinder Down Done");
                     Step.RunStep++;
                     break;
-                case ETransferProcessPlaceStep.Cylinders_Up:
-                    Log.Debug("Cylinder Up");
-                    Wait(1000);
+                case ETransferProcessPlaceStep.Cylinders1_Up:
+                    Log.Debug("Cylinder 1 Up");
+                    _devices.Outputs.Cylinder1Up.Value = true;
+                    Wait(100);
                     Step.RunStep++;
                     break;
-                case ETransferProcessPlaceStep.Cylinders_Up_Wait:
+                case ETransferProcessPlaceStep.Cylinders1_Up_Wait:
 #if !SIMULATION
                     if (WaitTimeOutOccurred)
                     {
@@ -583,7 +626,62 @@ namespace EQX.TemplateProject.Process
                         return;
                     }
 #endif
-                    Log.Debug("Cylinder Up Done");
+                    Log.Debug("Cylinder 1 Up Done");
+                    _devices.Outputs.Vacuum1Blow.Value = false;
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPlaceStep.Cylinders2_Down:
+                    Log.Debug("Cylinder 2 Down");
+                    _devices.Outputs.Cylinder2Down.Value = true;
+                    Wait(100);
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPlaceStep.Cylinders2_Down_Wait:
+#if !SIMULATION
+ 
+                    if(WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TransferCylinder_Place2Timeout);
+                        return;
+                    }
+#endif
+                    Log.Debug("Cylinder 2 Down Done");
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPlaceStep.Vacuum2_Blow:
+                    Log.Debug("Vaccum 2 Blow");
+                    _devices.Outputs.Vacuum2Blow.Value = true;
+                    Wait(100);
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPlaceStep.Vacuum2_Blow_Wait:
+#if !SIMULATION
+                    if(WaitTimeOutOccurred)
+                    { 
+                        RaiseAlarm(EAlarm.Vacuum2_BlowTimeout);
+                        return;
+                    }
+#endif
+                    Log.Debug("Vaccum 2 Blow Done");
+                    Wait(100);
+                    _devices.Outputs.Vacuum2Blow.Value = false;
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPlaceStep.Cylinders2_Up:
+                    Log.Debug("Cylinder 2 Up");
+                    _devices.Outputs.Cylinder2Up.Value = true;
+                    Wait(100);
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPlaceStep.Cylinders2_Up_Wait:
+#if !SIMULATION
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.Vacuum2_BlowTimeout);
+                        return;
+                    }
+#endif
+                    Log.Debug("Cylinder 2 Up Done");
                     Step.RunStep++;
                     break;
                 case ETransferProcessPlaceStep.End:
@@ -592,6 +690,6 @@ namespace EQX.TemplateProject.Process
                     break;
             }
         }
-        #endregion
+#endregion
     }
 }

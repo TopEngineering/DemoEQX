@@ -18,14 +18,19 @@ namespace EQX.TemplateProject.Defines.Process.Step.TransferProcess
         ZAxis_MovePlacePosition,
         ZAxis_MovePlacePosition_Wait,
 
-        Cylinders_Down,
-        Cylinders_Down_Wait,
+        Cylinders1_Down,
+        Cylinders1_Down_Wait,
+        Vacuum1_Blow,
+        Vacuum1_Blow_Wait,
+        Cylinders1_Up,
+        Cylinders1_Up_Wait,
 
-        Vacuum_Blow,
-        Vacuum_Blow_Wait,
-
-        Cylinders_Up,
-        Cylinders_Up_Wait,
+        Cylinders2_Down,
+        Cylinders2_Down_Wait,
+        Vacuum2_Blow,
+        Vacuum2_Blow_Wait,
+        Cylinders2_Up,
+        Cylinders2_Up_Wait,
 
         End,
     }
