@@ -14,6 +14,8 @@ namespace EQX.TemplateProject.Recipe
         private double xAxisPlacePosition;
         private double yAxisPlacePosition;
         private double zAxisPlacePosition;
+        private double picker2OffsetPick;
+        private double picker2OffsetPlace;
 
 
         [SingleRecipeDescription(Description = "X Axis Ready Position", Unit = Unit.mm)]
@@ -104,7 +106,7 @@ namespace EQX.TemplateProject.Recipe
                 yAxisPlacePosition = value;
             }
         }
-        [SingleRecipeDescription(Description = "Z Axis Place Position")]
+        [SingleRecipeDescription(Description = "Z Axis Place Position", Unit = Unit.mm)]
         [SinglePositionTeaching(Motion = "ZAxis")]
         public double ZAxisPlacePosition
         {
@@ -113,6 +115,26 @@ namespace EQX.TemplateProject.Recipe
             {
                 OnRecipeChanged(zAxisPlacePosition, value);
                 zAxisPlacePosition = value;
+            }
+        }
+        [SingleRecipeDescription(Description = "Picker 2 Offset Pick", Unit = Unit.mm)]
+        public double Picker2OffsetPick
+        {
+            get => picker2OffsetPick;
+            set
+            {
+                OnRecipeChanged(picker2OffsetPick, value);
+                picker2OffsetPick = value;
+            }
+        }
+        [SingleRecipeDescription(Description = "Picker 2 Offset Place", Unit = Unit.mm)]
+        public double Picker2OffsetPlace
+        {
+            get => picker2OffsetPlace;
+            set
+            {
+                OnRecipeChanged(picker2OffsetPlace, value);
+                picker2OffsetPlace = value;
             }
         }
     }

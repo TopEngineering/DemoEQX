@@ -2,6 +2,7 @@
 using EQX.Core.Units;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,10 +15,10 @@ namespace EQX.TemplateProject.Recipe
         private double inputTrayYPitch;
         private double outputTrayXPitch;
         private double outputTrayYPitch;
-        private double inputTrayColumns;
-        private double inputTrayRows;
-        private double outputTrayColumns;
-        private double outputTrayRows;
+        private int inputTrayColumns;
+        private int inputTrayRows;
+        private int outputTrayColumns;
+        private int outputTrayRows;
         [SingleRecipeDescription(Description = "Input Tray X Pitch", Unit = Unit.mm, Detail = "Pitch")]
         public double InputTrayXPitch
         {
@@ -51,7 +52,7 @@ namespace EQX.TemplateProject.Recipe
         [SingleRecipeDescription(Description = "Output Tray Y Pitch", Unit = Unit.mm, Detail = "Pitch")]
         public double OutputTrayYPitch
         {
-            get => outputTrayXPitch;
+            get => outputTrayYPitch;
             set
             {
                 OnRecipeChanged(outputTrayYPitch, value);
@@ -59,43 +60,47 @@ namespace EQX.TemplateProject.Recipe
             }
         }
         [SingleRecipeDescription(Description = "Input Tray Columns", Unit = Unit.ETC, Detail = "Column")]
-        public double InputTrayColumn
+        public int InputTrayColumn
         {
             get => inputTrayColumns;
             set
             {
                 OnRecipeChanged(inputTrayColumns, value);
                 inputTrayColumns = value;
+                OnPropertyChanged();
             }
         }
         [SingleRecipeDescription(Description = "Input Tray Rows", Unit = Unit.ETC, Detail = "Row")]
-        public double InputTrayRow
+        public int InputTrayRow
         {
             get => inputTrayRows;
             set
             {
                 OnRecipeChanged(inputTrayRows, value);
                 inputTrayRows = value;
+                OnPropertyChanged();
             }
         }
         [SingleRecipeDescription(Description = "Output Tray Columns", Unit = Unit.ETC, Detail = "Column")]
-        public double OutputTrayColumn
+        public int OutputTrayColumn
         {
             get => outputTrayColumns;
             set
             {
                 OnRecipeChanged(outputTrayColumns, value);
                 outputTrayColumns = value;
+                OnPropertyChanged();
             }
         }
         [SingleRecipeDescription(Description = "Output Tray Rows", Unit = Unit.ETC, Detail = "Row")]
-        public double OutputTrayRow
+        public int OutputTrayRow
         {
             get => outputTrayRows;
             set
             {
                 OnRecipeChanged(outputTrayRows, value);
                 outputTrayRows = value;
+                OnPropertyChanged();
             }
         }
     }

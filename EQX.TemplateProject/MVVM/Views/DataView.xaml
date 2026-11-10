@@ -336,26 +336,6 @@
                 </Grid>
             </Grid>
         </TabItem>
-        <TabItem Header="Skip / Trays" Width="200">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="24" MaxWidth="800" HorizontalAlignment="Left">
-                    <TextBlock Text="Lựa chọn đầu gắp" FontSize="22" FontWeight="Bold" Margin="0,0,0,16" />
-                    <CheckBox Content="Skip cylinder 1" IsChecked="{Binding TransferOptions.SkipCylinder1}" Margin="0,8" />
-                    <CheckBox Content="Skip cylinder 2" IsChecked="{Binding TransferOptions.SkipCylinder2}" Margin="0,8" />
-                    <CheckBox Content="Skip vacuum check (vẫn điều khiển hút/thổi)" IsChecked="{Binding TransferOptions.SkipVacuumCheck}" Margin="0,8" />
-                    <TextBlock Text="Không thể chạy nếu bỏ qua cả hai cylinder. Các lựa chọn được lưu cùng Recipe." TextWrapping="Wrap" Margin="0,12" />
-                    <TextBlock Text="Kích thước khay" FontSize="22" FontWeight="Bold" Margin="0,24,0,16" />
-                    <UniformGrid Columns="2">
-                        <TextBlock Text="Input: số hàng"/><TextBox Text="{Binding TransferOptions.InputRows, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" Margin="6"/>
-                        <TextBlock Text="Input: số cột"/><TextBox Text="{Binding TransferOptions.InputColumns, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" Margin="6"/>
-                        <TextBlock Text="Output: số hàng"/><TextBox Text="{Binding TransferOptions.OutputRows, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" Margin="6"/>
-                        <TextBlock Text="Output: số cột"/><TextBox Text="{Binding TransferOptions.OutputColumns, UpdateSourceTrigger=LostFocus, ValidatesOnExceptions=True}" Margin="6"/>
-                    </UniformGrid>
-                    <TextBlock Text="Mỗi chiều 1–100, tối đa 2500 ô/khay. Bước ô X/Y được nhập trong nhóm Transfer. Số 0 chỉ phù hợp khi không có bước theo chiều đó." TextWrapping="Wrap" Margin="0,12" />
-                    <Button Content="Save Recipe" Command="{Binding SaveRecipeCommand}" Padding="20,10" Margin="0,16" />
-                </StackPanel>
-            </ScrollViewer>
-        </TabItem>
         <TabItem Header="Speed"
                  Width="200">
             <Grid>

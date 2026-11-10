@@ -30,6 +30,9 @@ namespace EQX.TemplateProject.MVVM.ViewModels
             _navigationService = navigationService;
             Devices = devices;
             RecipeSelector = recipeSelector;
+            TrayRecipe = recipeSelector.CurrentRecipe.TrayRecipe;
+            TrayRecipe.PropertyChanged += TrayRecipeChanged;
+            UpdateTrayLayout();
             UserStore = userStore;
             _navigationStore = navigationStore;
             _languageService = languageService;
@@ -84,8 +87,40 @@ namespace EQX.TemplateProject.MVVM.ViewModels
 
         public ObservableCollection<TrayCell> InputCells { get; } = new();
         public ObservableCollection<TrayCell> OutputCells { get; } = new();
+        public TrayRecipe TrayRecipe { get; }
+        private void UpdateTrayLayout()
+        {
+            if (Application.Current?.Dispatcher is { } dispatcher && !dispatcher.CheckAccess())
+            {
+                dispatcher.Invoke(UpdateTrayLayout);
+                return;
+            }
+            CreateTrayCells(InputCells, TrayRecipe.InputTrayRow, TrayRecipe.InputTrayColumn);
+            CreateTrayCells(OutputCells, TrayRecipe.OutputTrayRow, TrayRecipe.OutputTrayColumn);
+        }
 
-        private TransferRecipe? _layoutRecipe;
+        private static void CreateTrayCells(ObservableCollection<TrayCell> cells, int rows, int columns)
+        {
+            cells.Clear();
+            if (rows < 1 || columns < 1 || (long)rows * columns > 2500)
+                return;
+            for (int number = 1; number <= rows * columns; number++)
+                cells.Add(new TrayCell(number));
+        }
+        private void TrayRecipeChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            switch(e.PropertyName)
+            {
+                case nameof(TrayRecipe.InputTrayRow):
+                case nameof(TrayRecipe.InputTrayColumn):
+                    CreateTrayCells(InputCells, TrayRecipe.InputTrayRow, TrayRecipe.InputTrayColumn);
+                    break;
+                case nameof(TrayRecipe.OutputTrayRow):
+                case nameof(TrayRecipe.OutputTrayColumn):
+                    CreateTrayCells(OutputCells, TrayRecipe.OutputTrayRow, TrayRecipe.OutputTrayColumn);
+                    break;
+            }
+        }
 
         private void MachineStatusOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {

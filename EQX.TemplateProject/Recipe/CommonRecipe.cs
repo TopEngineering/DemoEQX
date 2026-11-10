@@ -15,6 +15,8 @@ namespace EQX.TemplateProject.Recipe
         private double motionOriginTimeout;
         private double motionMoveTimeout;
         private double vacDelay;
+        private double purgeDelay;
+        private double pickPlaceTimeOut;
         private int logSaveDay = 30;
         public event Action<ILanguageDefinition> SelectedLanguageEvent;
         public event Action SelectedLanguageLoadAllRecipe;
@@ -69,7 +71,26 @@ namespace EQX.TemplateProject.Recipe
                 vacDelay = value;
             }
         }
-
+        [SingleRecipeDescription(Description = "Purge Delay", Unit = Unit.Second)]
+        private double PurgeDelay
+        {
+            get => purgeDelay;
+            set
+            {
+                OnRecipeChanged(purgeDelay, value);
+                purgeDelay = value;
+            }
+        }
+        [SingleRecipeDescription(Description = "Pick Place Timeout", Unit = Unit.Second)]
+        private double PickPlaceTimeOut
+        {
+            get => pickPlaceTimeOut;
+            set
+            {
+                OnRecipeChanged(pickPlaceTimeOut, value);
+                pickPlaceTimeOut = value;
+            }
+        }
         private double materialInputTimeout = 1800.0;
 
         [SingleRecipeDescription(Description = "Material Input Timeout",
@@ -98,50 +119,45 @@ namespace EQX.TemplateProject.Recipe
         }
 
         [SingleRecipeDescription(
-            Description = "Skip Left Port",
-            Detail = "Check to Skip Left Port")]
-        public bool DisableLeftPort
+            Description = "Skip Cylinder 1",
+            Detail = "Check to Skip Cylinder 1")]
+        public bool SkipCylinder1
         {
-            get { return disableLeftPort; }
+            get { return skipCylinder1; }
             set
             {
-                if (disableLeftPort == value) return;
+                if (skipCylinder1 == value) return;
 
-                OnRecipeChanged(disableLeftPort, value);
-                disableLeftPort = value;
+                OnRecipeChanged(skipCylinder1, value);
+                skipCylinder1 = value;
             }
         }
 
         [SingleRecipeDescription(
-            Description = "Skip Right Port",
-            Detail = "Check to Skip Right Port")]
-        public bool DisableRightPort
+            Description = "Skip Cylinder 2",
+            Detail = "Check to Skip Cylinder 2")]
+        public bool SkipCylinder2
         {
-            get { return disableRightPort; }
+            get { return skipCylinder2; }
             set
             {
-                if (disableRightPort == value) return;
+                if (skipCylinder2 == value) return;
 
-                OnRecipeChanged(DisableRightPort, value);
-                disableRightPort = value;
+                OnRecipeChanged(skipCylinder2, value);
+                skipCylinder2 = value;
             }
         }
-
-        [SingleRecipeDescription(
-            Description = "Skip Vinyl Clean",
-            Detail = "Check to skip Vinyl Clean")]
-        public bool SkipVinylClean
+        [SingleRecipeDescription(Description = "Skip Vacuum Check")]
+        public bool SkipVacuumCheck
         {
-            get { return skipVinylClean; }
+            get => skipVacuumCheck;
             set
             {
-                if (skipVinylClean == value) return;
-
-                OnRecipeChanged(skipVinylClean, value);
-                skipVinylClean = value;
+                if (skipVacuumCheck == value) return;
+                OnRecipeChanged(skipVacuumCheck, value);
+                skipVacuumCheck = value;
             }
         }
-        
         public ILanguageDefinition SelectedLanguage
         {
             get => selectLanguage;
@@ -156,9 +172,9 @@ namespace EQX.TemplateProject.Recipe
             }
         }
         #region Privates
-        private bool disableLeftPort;
-        private bool disableRightPort;
-        private bool skipVinylClean;
+        private bool skipCylinder1;
+        private bool skipCylinder2;
+        private bool skipVacuumCheck;
         private ILanguageDefinition selectLanguage;
         #endregion
     }

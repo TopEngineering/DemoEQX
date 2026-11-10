@@ -137,7 +137,8 @@
                                   ItemTemplate="{StaticResource TrayCellTemplate}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <UniformGrid Columns="{Binding DataContext.InputColumns, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
+                                <UniformGrid Rows="{Binding DataContext.TrayRecipe.InputTrayRow, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                             Columns="{Binding DataContext.TrayRecipe.InputTrayColumn, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
@@ -157,7 +158,8 @@
                                   ItemTemplate="{StaticResource TrayCellTemplate}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <UniformGrid Columns="{Binding DataContext.OutputColumns, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
+                                <UniformGrid Rows="{Binding DataContext.TrayRecipe.OutputTrayRow, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                             Columns="{Binding DataContext.TrayRecipe.OutputTrayColumn, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
