@@ -95,6 +95,10 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Canvas Grid.Row="0">
+            <ContentControl Content="{Binding Processes.TrayProcess}"
+                            Canvas.Left="250" Canvas.Top="550" />
+            <ContentControl Content="{Binding Processes.VisionProcess}"
+                            Canvas.Left="480" Canvas.Top="550" />
             <ContentControl Content="{Binding Processes.TransferProcess}"
                             Canvas.Left="20"
                             Canvas.Top="550" />

@@ -21,6 +21,8 @@ namespace EQX.TemplateProject.Extensions
             {
                 services.AddKeyedScoped<IProcess<ESequence>, RootProcess<ESequence, ESemiSequence>>(EProcess.Root.ToString());
                 services.AddKeyedScoped<IProcess<ESequence>, TransferProcess>(EProcess.Transfer.ToString());
+                services.AddKeyedScoped<IProcess<ESequence>, TrayProcess>(EProcess.Tray.ToString());
+                services.AddKeyedScoped<IProcess<ESequence>, VisionProcess>(EProcess.Vision.ToString());
                 //services.AddKeyedScoped<IProcess<ESequence>, ShuttleProcess>(EProcess.Shuttle.ToString());
 
                 services.AddSingleton((ser) =>

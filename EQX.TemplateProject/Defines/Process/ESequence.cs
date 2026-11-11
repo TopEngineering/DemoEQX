@@ -19,6 +19,10 @@ namespace EQX.TemplateProject.Defines
         Pick,
         [Description("Sequence Place")]
         Place,
+        [Description("Check Input/Output Trays")]
+        CheckTray,
+        [Description("Vision Inspection")]
+        Inspect,
     }
 
     public enum ESemiSequence
@@ -29,5 +33,9 @@ namespace EQX.TemplateProject.Defines
         Pick,
         [Description("Sequence Place")]
         Place,
+        [Description("Check Input/Output Trays")]
+        CheckTray,
+        [Description("Vision Inspection")]
+        Inspect,
     }
 }

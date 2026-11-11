@@ -3,6 +3,8 @@
     public enum EProcess
     {
         Root,
-        Transfer
+        Tray,
+        Transfer,
+        Vision,
     }
 }
