@@ -39,7 +39,19 @@ namespace EQX.TemplateProject.Services.Factories
 
         private ManualUnitViewModel CreateVM(string name)
         {
-            return new ManualUnitViewModel(name);
+            IMotion axis = name switch
+            {
+                "X Axis" => _devices.Motions.TransferXAxis,
+                "Y Axis" => _devices.Motions.TransferYAxis,
+                "Z Axis" => _devices.Motions.TransferZAxis,
+                _ => throw new ArgumentException($"Unknown manual unit: {name}")
+            };
+            return new ManualUnitViewModel(name)
+            {
+                Motions = new ObservableCollection<IMotion> { axis },
+                SelectedAxis = axis,
+                Speed = axis.Parameter.Velocity > 0 ? axis.Parameter.Velocity : 1
+            };
         }
 
         #region Private Fields

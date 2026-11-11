@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.Input;
@@ -23,6 +24,12 @@ namespace EQX.TemplateProject.MVVM.ViewModels.Manual
 {
     public class ManualUnitViewModel : ViewModelBase
     {
+        #region privates
+        private IMotion selectedAxis;
+        private double speed;
+        private double position;
+        #endregion
+        #region properties
         public ObservableCollection<ICylinder> Cylinders { get; set; }
         public ObservableCollection<IMotion> Motions { get; set; }
         public ObservableCollection<IDInput> Inputs { get; set; }
@@ -47,7 +54,39 @@ namespace EQX.TemplateProject.MVVM.ViewModels.Manual
                 input.RaiseValueUpdated();
             }
         }
-
+        public IMotion SelectedAxis
+        {
+            get => selectedAxis;
+            set
+            {
+                if (selectedAxis == value) return;
+                selectedAxis = value;
+                OnPropertyChanged();
+            }
+        }
+        public double Speed
+        {
+            get => speed;
+            set 
+            {
+                if (speed == value) return;
+                speed = value;
+                OnPropertyChanged();
+            }
+        }
+        public double Position
+        {
+            get => position;
+            set
+            {
+                if (position == value) return;
+                position = value;
+                OnPropertyChanged();
+            }
+        }
+            
+        #endregion
+        #region Commands
         public ICommand CylinderForwardCommand
         {
             get
@@ -125,6 +164,56 @@ namespace EQX.TemplateProject.MVVM.ViewModels.Manual
                 });
             }
         }
-
+        public RelayCommand<object> MotionButtonCommand
+        {
+            get
+            {
+                return new RelayCommand<object>((sender) =>
+                {
+                    if (selectedAxis == null) return;
+                    string tag = "";
+                    if (sender is Button)
+                    {
+                        tag = (sender as Button)?.Tag?.ToString() ?? "";
+                    }
+                    switch(tag)
+                    {
+                        case "Jog+Button":
+                            selectedAxis.MoveJog(Speed, true);
+                            break;
+                        case "Jog-Button":
+                            selectedAxis.MoveJog(Speed, false);
+                            break;
+                        case "Inc-Button":
+                            selectedAxis.MoveInc(Position*-1, Speed);
+                            break;
+                        case "Inc+Button":
+                            selectedAxis.MoveInc(Position, Speed);
+                            break;
+                        case "JogAbsButton":
+                            selectedAxis.MoveAbs(Position, Speed);
+                            break;
+                        case "ServoOnButton":
+                            selectedAxis.MotionOn();
+                            break;
+                        case "ServoOffButton":
+                            selectedAxis.MotionOff();
+                            break;
+                        case "AlarmReset":
+                            selectedAxis.AlarmReset();
+                            break;
+                        case "HomeButton":
+                            selectedAxis.SearchOrigin();
+                            break;
+                        case "StopButton":
+                            selectedAxis.Stop();
+                            break;
+                        default:
+                            break;
+                    }
+                });
+            }
+        }
+        #endregion
     }
 }

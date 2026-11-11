@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:EQX.TemplateProject.MVVM.Views"
              xmlns:vm="clr-namespace:EQX.TemplateProject.MVVM.ViewModels"
+             xmlns:manualVM="clr-namespace:EQX.TemplateProject.MVVM.ViewModels.Manual"
              xmlns:uc="clr-namespace:EQX.UI.Controls;assembly=EQX.UI"
              d:DataContext="{d:DesignInstance Type=vm:ManualViewModel}"
              xmlns:uiControls="clr-namespace:EQX.UI.Controls;assembly=EQX.UI"
@@ -13,6 +14,59 @@
              d:DesignHeight="450"
              d:DesignWidth="800">
     <UserControl.Resources>
+        <Style x:Key="MotionControlButtonStyle" TargetType="Button">
+            <Setter Property="Margin" Value="4" />
+            <Setter Property="MinHeight" Value="48" />
+            <Setter Property="FontSize" Value="16" />
+        </Style>
+        <DataTemplate DataType="{x:Type manualVM:ManualUnitViewModel}">
+            <GroupBox Header="Motion Control" Margin="10">
+                <StackPanel Margin="10">
+                    <TextBlock Text="{Binding Name}" FontSize="22" FontWeight="Bold" Margin="0,0,0,12" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="1" Text="Speed (mm/s)" VerticalAlignment="Center" Margin="4" />
+                        <TextBox Grid.Row="1" Grid.Column="1" Margin="4" MinHeight="36"
+                                 Text="{Binding Speed, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+                        <TextBlock Grid.Row="2" Text="Position / Distance (mm)" VerticalAlignment="Center" Margin="4" />
+                        <TextBox Grid.Row="2" Grid.Column="1" Margin="4" MinHeight="36"
+                                 Text="{Binding Position, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
+                    </Grid>
+                    <UniformGrid Columns="3" Margin="0,12,0,0">
+                        <Button Content="Servo On" Tag="ServoOnButton" Style="{StaticResource MotionControlButtonStyle}"
+                                Command="{Binding MotionButtonCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
+                        <Button Content="Servo Off" Tag="ServoOffButton" Style="{StaticResource MotionControlButtonStyle}"
+                                Command="{Binding MotionButtonCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
+                        <Button Content="Alarm Reset" Tag="AlarmReset" Style="{StaticResource MotionControlButtonStyle}"
+                                Command="{Binding MotionButtonCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
+                        <Button Content="Jog −" Tag="Jog-Button" Style="{StaticResource MotionControlButtonStyle}"
+                                Command="{Binding MotionButtonCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
+                                ClickMode="Press" />
+                        <Button Content="Stop" Tag="StopButton" Background="Tomato" Style="{StaticResource MotionControlButtonStyle}"
+                                Command="{Binding MotionButtonCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
+                        <Button Content="Jog +" Tag="Jog+Button" Style="{StaticResource MotionControlButtonStyle}"
+                                Command="{Binding MotionButtonCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
+                                ClickMode="Press" />
+                        <Button Content="Move Inc −" Tag="Inc-Button" Style="{StaticResource MotionControlButtonStyle}"
+                                Command="{Binding MotionButtonCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
+                        <Button Content="Home" Tag="HomeButton"  Background="LightGreen" Style="{StaticResource MotionControlButtonStyle}"
+                                Command="{Binding MotionButtonCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
+                        <Button Content="Move Inc +" Tag="Inc+Button" Style="{StaticResource MotionControlButtonStyle}"
+                                Command="{Binding MotionButtonCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
+                        <Button Content="Move Abs" Tag="JogAbsButton" Style="{StaticResource MotionControlButtonStyle}"
+                                Command="{Binding MotionButtonCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
+                    </UniformGrid>
+                </StackPanel>
+            </GroupBox>
+        </DataTemplate>
         <Style x:Key="SpinnerDotStyle"
                TargetType="Ellipse">
             <Setter Property="Width"
@@ -59,6 +113,19 @@
             </Grid>
             <DockPanel Grid.Column="1"
                        IsEnabled="{Binding MachineStatus.IsStandByProcessMode}">
+                <GroupBox Header="Actual Position (mm)" DockPanel.Dock="Top" Margin="0,0,0,8">
+                    <ItemsControl ItemsSource="{Binding Devices.Motions.All}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="4">
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Margin="0,0,0,3" />
+                                    <TextBox IsReadOnly="True" FontSize="20" TextAlignment="Right"
+                                             Text="{Binding Status.ActualPosition, Mode=OneWay, StringFormat=F3}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </GroupBox>
                 <GroupBox Header="MOTION"
                           DockPanel.Dock="Top"
                           Margin="0 0 0 2">

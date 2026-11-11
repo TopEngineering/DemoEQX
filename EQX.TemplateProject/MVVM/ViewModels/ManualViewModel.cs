@@ -112,8 +112,9 @@ namespace EQX.TemplateProject.MVVM.ViewModels
 
             ManualUnits = new ObservableCollection<ManualVMWithSelection>()
             {
-                new ManualVMWithSelection("In Conveyor", true),
-                new ManualVMWithSelection("In Work Conveyor", false),
+                new ManualVMWithSelection("X Axis", true),
+                new ManualVMWithSelection("Y Axis", false),
+                new ManualVMWithSelection("Z Axis", false),
             };
 
             _inoutUpdateTimer = new System.Timers.Timer(100);
