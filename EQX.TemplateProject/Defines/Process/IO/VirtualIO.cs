@@ -32,6 +32,10 @@ namespace EQX.TemplateProject.Defines
 
         public IDInputDevice TransferProcessInput { get; }
         public IDOutputDevice TransferProcessOutput { get; }
+        public IDInputDevice TrayProcessInput { get; }
+        public IDOutputDevice TrayProcessOutput { get; }
+        public IDInputDevice VisionProcessInput { get; }
+        public IDOutputDevice VisionProcessOutput { get; }
 
         public void Initialize()
         {
@@ -55,8 +59,8 @@ namespace EQX.TemplateProject.Defines
             #region TransferProcess to TrayProcess
             _transferProcessInput[ETransferProcessInput.TRAY_PICK_CELL_READY].MapTo(_trayProcessOutput[ETrayProcessOutput.TRAY_PICK_CELL_READY]);
             _transferProcessInput[ETransferProcessInput.TRAY_PLACE_CELL_READY].MapTo(_trayProcessOutput[ETrayProcessOutput.TRAY_PLACE_CELL_READY]);
-            _transferProcessInput[ETransferProcessInput.TRAY_PICK_DONE].MapTo(_trayProcessOutput[ETrayProcessOutput.TRANSFER_PICK_DONE]);
-            _transferProcessInput[ETransferProcessInput.TRAY_PLACE_DONE].MapTo(_trayProcessOutput[ETrayProcessOutput.TRANSFER_PLACE_DONE]);
+            _transferProcessInput[ETransferProcessInput.TRAY_PICK_DONE].MapTo(_trayProcessOutput[ETrayProcessOutput.TRAY_PICK_DONE]);
+            _transferProcessInput[ETransferProcessInput.TRAY_PLACE_DONE].MapTo(_trayProcessOutput[ETrayProcessOutput.TRAY_PLACE_DONE]);
             #endregion
             #region TransferProcess to VisionProcess
             _transferProcessInput[ETransferProcessInput.VISION_CHECK_DONE].MapTo(_visionProcessOutput[EVisionProcessOutput.VISION_CHECK_DONE]);

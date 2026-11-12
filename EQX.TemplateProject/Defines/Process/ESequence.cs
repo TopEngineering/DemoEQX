@@ -23,6 +23,10 @@ namespace EQX.TemplateProject.Defines
         CheckTray,
         [Description("Vision Inspection")]
         Inspect,
+        [Description("Prepare Input Tray Pick Cell")]
+        PreparePickCell,
+        [Description("Prepare Output Tray Place Cell")]
+        PreparePlaceCell,
     }
 
     public enum ESemiSequence
