@@ -20,8 +20,10 @@ namespace EQX.TemplateProject.Extensions
                 services.AddKeyedSingleton<IDInputDevice, MappableInputDevice<ETransferProcessInput>>("TransferProcessInput");
                 services.AddKeyedSingleton<IDOutputDevice, MappableOutputDevice<ETransferProcessOutput>>("TransferProcessOutput");
 
-                services.AddKeyedSingleton<IDInputDevice, MappableInputDevice<EShuttleProcessInput>>("ShuttleProcessInput");
-                services.AddKeyedSingleton<IDOutputDevice, MappableOutputDevice<EShuttleProcessOutput>>("ShuttleProcessOutput");
+                services.AddKeyedSingleton<IDInputDevice, MappableInputDevice<ETrayProcessInput>>("TrayProcessInput");
+                services.AddKeyedSingleton<IDOutputDevice, MappableOutputDevice<ETrayProcessOutput>>("TrayProcessOutput");
+                services.AddKeyedSingleton<IDInputDevice, MappableInputDevice<EVisionProcessInput>>("VisionProcessInput");
+                services.AddKeyedSingleton<IDOutputDevice, MappableOutputDevice<EVisionProcessOutput>>("VisionProcessOutput");
 
                 services.AddSingleton<VirtualIO>();
 
