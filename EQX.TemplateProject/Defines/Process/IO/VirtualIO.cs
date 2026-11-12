@@ -22,8 +22,8 @@ namespace EQX.TemplateProject.Defines
                          [FromKeyedServices("VisionProcessInput")] IDInputDevice visionProcessInput,
                          [FromKeyedServices("VisionProcessOutput")] IDOutputDevice visionProcessOutput)
         {
-            _trayProcessInput = (IDInputDevice<ETrayProcessInput>) trayProcessInput);
-            _trayProcessOutput = (IDOutputDevice<ETrayProcessOutput>)trayProcessOutput);
+            _trayProcessInput = (IDInputDevice<ETrayProcessInput>) trayProcessInput;
+            _trayProcessOutput = (IDOutputDevice<ETrayProcessOutput>)trayProcessOutput;
             _transferProcessInput = (IDInputDevice<ETransferProcessInput>)transferProcessInput;
             _transferProcessOutput = (IDOutputDevice<ETransferProcessOutput>)transferProcessOutput;
             _visionProcessInput = (IDInputDevice<EVisionProcessInput>)visionProcessInput;
