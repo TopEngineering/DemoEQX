@@ -47,5 +47,15 @@
         TransferXAxis_ReadyTimeout,
         TransferYAxis_ReadyTimeout,
         TransferNotOrigin,
+
+        TrayRecipeInvalid = 200,
+        TrayInputEmpty,
+        TrayOutputFull,
+        TrayPickTimeout,
+        TrayPlaceTimeout,
+        TransferRequestPickFailed,
+        TransferRequestPlaceFailed,
+        TransferPickFailed,
+        TransferPlaceFailed,
     }
 }

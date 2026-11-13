@@ -10,5 +10,15 @@ namespace EQX.TemplateProject.Process
 {
     public class VisionProcess : ProcessBase<ESequence>
     {
+        #region private
+        #endregion
+        #region Flags
+        #endregion
+        #region Constructors
+        #endregion
+        #region Override Methods
+        #endregion
+        #region Sequences
+        #endregion
     }
 }

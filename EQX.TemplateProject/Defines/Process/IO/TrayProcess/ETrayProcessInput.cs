@@ -6,5 +6,7 @@ namespace EQX.TemplateProject.Defines
         TRANSFER_REQUEST_PLACE_CELL,
         TRANSFER_PICK_DONE,
         TRANSFER_PLACE_DONE,
+        TRAY_INPUT_EMTY,
+        TRAY_OUTPUT_FULL,
     }
 }

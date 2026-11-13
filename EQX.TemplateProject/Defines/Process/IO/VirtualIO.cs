@@ -30,12 +30,12 @@ namespace EQX.TemplateProject.Defines
             _visionProcessOutput = (IDOutputDevice<EVisionProcessOutput>)visionProcessOutput;
         }
 
-        public IDInputDevice TransferProcessInput { get; }
-        public IDOutputDevice TransferProcessOutput { get; }
-        public IDInputDevice TrayProcessInput { get; }
-        public IDOutputDevice TrayProcessOutput { get; }
-        public IDInputDevice VisionProcessInput { get; }
-        public IDOutputDevice VisionProcessOutput { get; }
+        public IDInputDevice TransferProcessInput => _transferProcessInput;
+        public IDOutputDevice TransferProcessOutput => _transferProcessOutput;
+        public IDInputDevice TrayProcessInput => _trayProcessInput;
+        public IDOutputDevice TrayProcessOutput => _trayProcessOutput;
+        public IDInputDevice VisionProcessInput => _visionProcessInput;
+        public IDOutputDevice VisionProcessOutput => _visionProcessOutput;
 
         public void Initialize()
         {
