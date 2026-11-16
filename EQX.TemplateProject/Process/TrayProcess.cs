@@ -356,7 +356,8 @@ namespace EQX.TemplateProject.Process
                     Step.RunStep++;
                     break;
                 case ETrayProcessPreparePlaceCellStep.ClearPlaceFlags:
-                    ((MappableOutputDevice<ETrayProcessOutput>)VirtualOutput).ClearOutputs(); FlagTrayPlaceCellReady = false;
+                    ((MappableOutputDevice<ETrayProcessOutput>)VirtualOutput).ClearOutputs(); 
+                    FlagTrayPlaceCellReady = false;
                     FlagTrayPlaceDone = false;
                     Log.Debug("Clear Place Flag");
                     Step.RunStep++;
