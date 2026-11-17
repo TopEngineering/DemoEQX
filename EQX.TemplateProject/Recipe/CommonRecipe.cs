@@ -158,6 +158,17 @@ namespace EQX.TemplateProject.Recipe
                 skipVacuumCheck = value;
             }
         }
+        [SingleRecipeDescription(Description = "Skip Vision Check")]
+        public bool SkipVisionCheck
+        {
+            get => skipVisionCheck;
+            set
+            {
+                if (skipVisionCheck == value) return;
+                OnRecipeChanged(SkipVisionCheck, value);
+                skipVisionCheck = value;
+            }
+        }
         public ILanguageDefinition SelectedLanguage
         {
             get => selectLanguage;
@@ -171,10 +182,11 @@ namespace EQX.TemplateProject.Recipe
                 SelectedLanguageLoadAllRecipe?.Invoke();
             }
         }
-        #region Privates
+         #region Privates
         private bool skipCylinder1;
         private bool skipCylinder2;
         private bool skipVacuumCheck;
+        private bool skipVisionCheck;
         private ILanguageDefinition selectLanguage;
         #endregion
     }

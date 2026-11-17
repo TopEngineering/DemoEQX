@@ -57,5 +57,11 @@
         TransferRequestPlaceFailed,
         TransferPickFailed,
         TransferPlaceFailed,
+
+        VisionCameraNotConfigured = 300,
+        VisionCameraDisconnected,
+        CylinderMoveVisionPositionTimeOut,
+        ImageGrabTimeOut,
+        VisionInspectTimeOut,
     }
 }
