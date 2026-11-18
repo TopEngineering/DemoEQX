@@ -19,6 +19,7 @@ namespace EQX.TemplateProject.Defines.Process.Step.VisionProcess
         UpdateCurrentHead,
 
         Vision_CheckDone,
+        RequestTransferPlace,
         TransferRequestOff_Wait,
         Vision_ClearFlags,
         End,

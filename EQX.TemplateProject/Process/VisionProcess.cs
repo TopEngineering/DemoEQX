@@ -1,4 +1,4 @@
-using EQX.Core.Common;
+﻿using EQX.Core.Common;
 using EQX.Core.InOut;
 using EQX.Process;
 using EQX.Core.Sequence;
@@ -60,6 +60,10 @@ namespace EQX.TemplateProject.Process
         private bool FlagVisionRequestHead2Position
         {
             set { VirtualOutput[(int)EVisionProcessOutput.VISION_REQUEST_HEAD2_POSITION] = value; }
+        }
+        private bool FlagVisionRequestPlace
+        {
+            set { VirtualOutput[(int)EVisionProcessOutput.VISION_REQ_PLACE] = value; }
         }
 
         #endregion
@@ -165,12 +169,12 @@ namespace EQX.TemplateProject.Process
                     Step.RunStep++;
                     break;
                 case EVisionProcessAutoRunStep.WaitTransferRequest:
-                    Log.Debug("Transfer Request");
                     if (!FlagTransferRequestVisionCheck)
                     {
                         Wait(50);
                         break;
                     }
+                    Log.Debug("Transfer Request");
                     Step.RunStep++;
                     break;
                 case EVisionProcessAutoRunStep.End:
@@ -208,11 +212,13 @@ namespace EQX.TemplateProject.Process
                     Step.RunStep++;
                     break;
                 case EVisionProcessCheckStep.Cylinder_Move_VisionPosition_Wait:
+#if !SIMULATION 
                     if (WaitTimeOutOccurred)
                     {
                         RaiseAlarm(EAlarm.CylinderMoveVisionPositionTimeOut);
                         break;
                     }
+#endif
                     Log.Debug("Cylinder Move Vision Position Done");
                     Step.RunStep++;
                     break;
@@ -221,10 +227,13 @@ namespace EQX.TemplateProject.Process
                     Step.RunStep++;
                     break;
                 case EVisionProcessCheckStep.ImageGrab_Wait:
+#if !SIMULATION
                     if (WaitTimeOutOccurred)
                     {
                         RaiseAlarm(EAlarm.ImageGrabTimeOut);
+                        break;
                     }
+#endif
                     Log.Debug("Image Grab Done");
                     Step.RunStep++;
                     break;
@@ -233,12 +242,18 @@ namespace EQX.TemplateProject.Process
                     Step.RunStep++;
                     break;
                 case EVisionProcessCheckStep.VisionInspect_Wait:
+#if !SIMULATION
                     if(WaitTimeOutOccurred)
                     {
                         RaiseAlarm(EAlarm.VisionInspectTimeOut);
                         break;
-                    }    
+                    }
+#endif                 
                     Log.Debug("Vision Inspect Done");
+                    Step.RunStep++;
+                    break;
+                case EVisionProcessCheckStep.VisionRetryCheck:
+                    Log.Debug("Vision Retry Check");
                     Step.RunStep++;
                     break;
                 case EVisionProcessCheckStep.ResultUpdate:
@@ -254,19 +269,42 @@ namespace EQX.TemplateProject.Process
                     Step.RunStep++;
                     break;
                 case EVisionProcessCheckStep.Vision_ClearFlags:
+                    ((MappableOutputDevice<EVisionProcessOutput>)VirtualOutput).ClearOutputs();
                     Log.Debug("Vision Clear Flag");
                     Step.RunStep++;
                     break;
+                case EVisionProcessCheckStep.RequestTransferPlace:
+                    FlagVisionRequestPlace = true;
+                    _timer.Restart();
+                    Log.Debug("Request Transfer Place");
+                    Step.RunStep++;
+                    break;
+                case EVisionProcessCheckStep.TransferRequestOff_Wait:
+                    if (FlagTransferRequestVisionCheck)
+                    {
+                        if (_timer.ElapsedMilliseconds >= 10000)
+                        {
+                            FlagVisionRequestPlace = false;
+                            RaiseAlarm(EAlarm.VisionInspectTimeOut);
+                            break;
+                        }
+                        Wait(50);
+                        break;
+                    }
+                    Log.Debug("Transfer Place Request Done");
+                    Step.RunStep++;
+                    break;
                 case EVisionProcessCheckStep.End:
-                    Log.Debug("Vision Check Done");
                     if (Parent?.Sequence != ESequence.AutoRun)
                     {
                         Sequence = ESequence.Stop;
                         break;
                     }
+                    Log.Debug("Vision End");
+                    Sequence = ESequence.AutoRun;
                     break;
             }
         }
-        #endregion
+#endregion
     }
 }

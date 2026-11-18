@@ -132,6 +132,7 @@ namespace EQX.TemplateProject.Process
                     break;
                 case ETrayProcessAutoRunStep.CheckTrayStatus:
                     Log.Debug("CheckTray");
+                    Step.RunStep++;
                     break;
                 case ETrayProcessAutoRunStep.WaitTransferRequest:
                     if (FlagTransferRequestPickCell)

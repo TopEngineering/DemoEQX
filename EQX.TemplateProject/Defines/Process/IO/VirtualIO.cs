@@ -73,6 +73,7 @@ namespace EQX.TemplateProject.Defines
             _visionProcessInput[EVisionProcessInput.TRANSFER_HEAD2_VISION_POSITION_READY].MapTo(_transferProcessOutput[ETransferProcessOutput.TRANSFER_HEAD2_VISION_POSITION_READY]);
 
             _transferProcessInput[ETransferProcessInput.VISION_CHECK_DONE].MapTo(_visionProcessOutput[EVisionProcessOutput.VISION_CHECK_DONE]);
+            _transferProcessInput[ETransferProcessInput.VISION_REQ_PLACE].MapTo(_visionProcessOutput[EVisionProcessOutput.VISION_REQ_PLACE]);
             _transferProcessInput[ETransferProcessInput.VISION_CHECK_RUNNING].MapTo(_visionProcessOutput[EVisionProcessOutput.VISION_CHECK_RUNNING]);
             _transferProcessInput[ETransferProcessInput.VISION_CHECK_OK].MapTo(_visionProcessOutput[EVisionProcessOutput.VISION_CHECK_OK]);
             _transferProcessInput[ETransferProcessInput.VISION_CHECK_NG].MapTo(_visionProcessOutput[EVisionProcessOutput.VISION_CHECK_NG]);

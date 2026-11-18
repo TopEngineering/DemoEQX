@@ -7,6 +7,7 @@ namespace EQX.TemplateProject.Defines
         TRAY_PICK_DONE,
         TRAY_PLACE_DONE,
         VISION_CHECK_DONE,
+        VISION_REQ_PLACE,
         VISION_CHECK_RUNNING,
         VISION_CHECK_OK,
         VISION_CHECK_NG,

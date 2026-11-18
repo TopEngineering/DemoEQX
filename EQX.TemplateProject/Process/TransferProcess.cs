@@ -1,4 +1,4 @@
-using EQX.TemplateProject.MVVM.Models;
+﻿using EQX.TemplateProject.MVVM.Models;
 using EQX.Core.InOut;
 using EQX.Core.Motion;
 using EQX.Core.Sequence;
@@ -27,7 +27,10 @@ namespace EQX.TemplateProject.Process
         #region Flags
         private IDInputDevice VirtualInput => _virtualIO.TransferProcessInput;
         private IDOutputDevice VirtualOutput => _virtualIO.TransferProcessOutput;
-
+        private bool FlagRequestVisionCheck
+        {
+            set { VirtualOutput[(int)ETransferProcessOutput.TRANSFER_REQUEST_VISION_CHECK] = value; }
+        }
         //private bool FlagIn_ShuttleRequestLoad
         //{
         //    get
@@ -138,6 +141,15 @@ namespace EQX.TemplateProject.Process
                     break;
                 case ESequence.Pick:
                     Sequence_Pick();
+                    break;
+                case ESequence.Inspect:
+                    if (VirtualInput[(int)ETransferProcessInput.VISION_REQ_PLACE])
+                    {
+                        FlagRequestVisionCheck = false;
+
+                        Log.Debug("Receive Vision Request Place");
+                        Sequence = ESequence.Place;
+                    }
                     break;
                 case ESequence.Place:
                     Sequence_Place();
@@ -312,7 +324,6 @@ namespace EQX.TemplateProject.Process
                     break;
                 case ETransferProcessReadyStep.End:
                     Log.Debug("Ready End");
-                    // RootProcess observes child Stop and sets MachineReadyDone.
                     Sequence = ESequence.Stop;
                     break;
             }
@@ -494,10 +505,19 @@ namespace EQX.TemplateProject.Process
                     Log.Debug("Cylinder2 Up Done");
                     Step.RunStep++;
                     break;
+                case ETransferProcessPickStep.IfSkipVision:
+                    if(!_recipeList.CommonRecipe.SkipVisionCheck)
+                    {
+                        FlagRequestVisionCheck = true;
+                        Sequence = ESequence.Inspect;
+                        Log.Debug("Vision Check");
+                        break;
+                    }
+                    Step.RunStep++;
+                    break;
                 case ETransferProcessPickStep.End:
                     Log.Debug("Pick End");
                     Sequence = ESequence.Place;
-                    Step.RunStep++;
                     break;
             }
         }

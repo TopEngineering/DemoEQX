@@ -31,6 +31,7 @@ namespace EQX.TemplateProject.Defines.Process.Step.TransferProcess
         Vacuum2_On_Wait,
         Cylinders2_Up,
         Cylinders2_Up_Wait,
+        IfSkipVision,
         End,
     }
 }
