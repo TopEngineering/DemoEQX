@@ -22,3 +22,6 @@
 [submodule "EQX.Vision"]
 	path = EQX.Vision
 	url = https://github.com/TopEngineering/EQX.Vision.git
+[submodule "EQX.VisionUI"]
+	path = EQX.VisionUI
+	url = https://github.com/TopEngineering/EQX.VisionUI.git
