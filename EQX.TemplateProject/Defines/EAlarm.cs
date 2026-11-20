@@ -61,6 +61,9 @@
         VisionCameraNotConfigured = 300,
         VisionCameraDisconnected,
         CylinderMoveVisionPositionTimeOut,
+        XAxis_MoveInspectPosition_TimeOut,
+        YAxis_MoveInspectPosition_TimeOut,
+        ZAxis_MoveInspectPosition_TimeOut,
         ImageGrabTimeOut,
         VisionInspectTimeOut,
     }

@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using EQX.TemplateProject.Defines;
 using EQX.TemplateProject.Services.Factories;
+using EQX.TemplateProject.Defines.Vision;
 
 namespace EQX.TemplateProject.Extensions
 {
@@ -15,6 +16,7 @@ namespace EQX.TemplateProject.Extensions
             hostBuilder.ConfigureServices((hostContext, services) =>
             {
                 services.AddSingleton<UserStore>();
+                services.AddSingleton<CVisionAlignResults>();
                 services.AddSingleton<CellStatusToColorConverter>();
 
                 services.AddSingleton<TeachingViewModelFactory>();

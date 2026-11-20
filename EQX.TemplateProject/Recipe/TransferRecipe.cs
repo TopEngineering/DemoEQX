@@ -1,4 +1,4 @@
-using EQX.Core.Recipe;
+﻿using EQX.Core.Recipe;
 using EQX.Core.Units;
 
 namespace EQX.TemplateProject.Recipe
@@ -14,6 +14,12 @@ namespace EQX.TemplateProject.Recipe
         private double xAxisPlacePosition;
         private double yAxisPlacePosition;
         private double zAxisPlacePosition;
+        private double xAxisInspectPosition1;
+        private double yAxisInspectPosition1;
+        private double zAxisInspectPosition1;
+        private double xAxisInspectPosition2;
+        private double yAxisInspectPosition2;
+        private double zAxisInspectPosition2;
         private double picker2OffsetPick;
         private double picker2OffsetPlace;
 
@@ -115,6 +121,72 @@ namespace EQX.TemplateProject.Recipe
             {
                 OnRecipeChanged(zAxisPlacePosition, value);
                 zAxisPlacePosition = value;
+            }
+        }
+        [SingleRecipeDescription(Description = "X Axis Inspect Position 1", Unit = Unit.mm)]
+        [SinglePositionTeaching(Motion = "XAxis")]
+        public double XAxisInspectPosition1
+        {
+            get => xAxisInspectPosition1;
+            set
+            {
+                OnRecipeChanged(xAxisInspectPosition1, value);
+                xAxisInspectPosition1 = value;
+            }
+        }
+        [SingleRecipeDescription(Description = "Y Axis Inspect Position 1", Unit = Unit.mm)]
+        [SinglePositionTeaching(Motion = "YAxis")]
+        public double YAxisInspectionPosition1
+        {
+            get => yAxisInspectPosition1;
+            set
+            {
+                OnRecipeChanged(yAxisInspectPosition1, value);
+                yAxisInspectPosition1 = value;
+            }
+        }
+        [SingleRecipeDescription(Description = "Z Axis Inspect Position 1", Unit = Unit.mm)]
+        [SinglePositionTeaching(Motion = "ZAxis")]
+        public double ZAxisInspectionPosition1
+        {
+            get => zAxisInspectPosition1;
+            set
+            {
+                OnRecipeChanged(zAxisInspectPosition1, value);
+                zAxisInspectPosition1 = value;
+            }
+        }
+        [SingleRecipeDescription(Description = "X Axis Inspect Position 2", Unit = Unit.mm)]
+        [SinglePositionTeaching(Motion = "XAxis")]
+        public double XAxisInspectPosition2
+        {
+            get => xAxisInspectPosition2;
+            set
+            {
+                OnRecipeChanged(xAxisInspectPosition2, value);
+                xAxisInspectPosition2 = value;
+            }
+        }
+        [SingleRecipeDescription(Description = "Y Axis Inspect Position 2", Unit = Unit.mm)]
+        [SinglePositionTeaching(Motion = "YAxis")]
+        public double YAxisInspectionPosition2
+        {
+            get => yAxisInspectPosition2;
+            set
+            {
+                OnRecipeChanged(yAxisInspectPosition2, value);
+                yAxisInspectPosition2 = value;
+            }
+        }
+        [SingleRecipeDescription(Description = "Z Axis Inspect Position 2", Unit = Unit.mm)]
+        [SinglePositionTeaching(Motion = "ZAxis")]
+        public double ZAxisInspectionPosition2
+        {
+            get => zAxisInspectPosition2;
+            set
+            {
+                OnRecipeChanged(zAxisInspectPosition2, value);
+                zAxisInspectPosition2 = value;
             }
         }
         [SingleRecipeDescription(Description = "Picker 2 Offset Pick", Unit = Unit.mm)]

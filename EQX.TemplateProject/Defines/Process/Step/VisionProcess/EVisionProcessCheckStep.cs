@@ -1,26 +1,21 @@
-namespace EQX.TemplateProject.Defines.Process.Step.VisionProcess
+﻿namespace EQX.TemplateProject.Defines.Process.Step.VisionProcess
 {
     public enum EVisionProcessCheckStep
     {
         Start,
-        IfSkipVision,
+        FlagTranserREQInspect,
         SetCurrentHead,
-        Cylinder_Move_VisionPosition,
-        Cylinder_Move_VisionPosition_Wait,
-
+        Head_Move_UnderVisionPosition_Wait,
         ImageGrab,
         ImageGrab_Wait,
-
-        VisionInspect,
-        VisionInspect_Wait,
-
+        VisionInspect1,
+        VisionInspect1_Wait,
+        VisionInspect2,
+        VisionInspect2_Wait,
         VisionRetryCheck,
         ResultUpdate,
         UpdateCurrentHead,
-
         Vision_CheckDone,
-        RequestTransferPlace,
-        TransferRequestOff_Wait,
         Vision_ClearFlags,
         End,
     }

@@ -63,21 +63,10 @@ namespace EQX.TemplateProject.Defines
             _transferProcessInput[ETransferProcessInput.TRAY_PLACE_DONE].MapTo(_trayProcessOutput[ETrayProcessOutput.TRAY_PLACE_DONE]);
             #endregion
             #region TransferProcess to VisionProcess
-            _transferProcessInput[ETransferProcessInput.VISION_REQUEST_HEAD1_POSITION].MapTo(_visionProcessOutput[EVisionProcessOutput.VISION_REQUEST_HEAD1_POSITION]);
-            _transferProcessInput[ETransferProcessInput.VISION_REQUEST_HEAD2_POSITION].MapTo(_visionProcessOutput[EVisionProcessOutput.VISION_REQUEST_HEAD2_POSITION]);
-            _transferProcessInput[ETransferProcessInput.VISION_HEAD1_OK].MapTo(_visionProcessOutput[EVisionProcessOutput.VISION_HEAD1_OK]);
-            _transferProcessInput[ETransferProcessInput.VISION_HEAD1_NG].MapTo(_visionProcessOutput[EVisionProcessOutput.VISION_HEAD1_NG]);
-            _transferProcessInput[ETransferProcessInput.VISION_HEAD2_OK].MapTo(_visionProcessOutput[EVisionProcessOutput.VISION_HEAD2_OK]);
-            _transferProcessInput[ETransferProcessInput.VISION_HEAD2_NG].MapTo(_visionProcessOutput[EVisionProcessOutput.VISION_HEAD2_NG]);
-            _visionProcessInput[EVisionProcessInput.TRANSFER_HEAD1_VISION_POSITION_READY].MapTo(_transferProcessOutput[ETransferProcessOutput.TRANSFER_HEAD1_VISION_POSITION_READY]);
-            _visionProcessInput[EVisionProcessInput.TRANSFER_HEAD2_VISION_POSITION_READY].MapTo(_transferProcessOutput[ETransferProcessOutput.TRANSFER_HEAD2_VISION_POSITION_READY]);
-
-            _transferProcessInput[ETransferProcessInput.VISION_CHECK_DONE].MapTo(_visionProcessOutput[EVisionProcessOutput.VISION_CHECK_DONE]);
-            _transferProcessInput[ETransferProcessInput.VISION_REQ_PLACE].MapTo(_visionProcessOutput[EVisionProcessOutput.VISION_REQ_PLACE]);
-            _transferProcessInput[ETransferProcessInput.VISION_CHECK_RUNNING].MapTo(_visionProcessOutput[EVisionProcessOutput.VISION_CHECK_RUNNING]);
-            _transferProcessInput[ETransferProcessInput.VISION_CHECK_OK].MapTo(_visionProcessOutput[EVisionProcessOutput.VISION_CHECK_OK]);
-            _transferProcessInput[ETransferProcessInput.VISION_CHECK_NG].MapTo(_visionProcessOutput[EVisionProcessOutput.VISION_CHECK_NG]);
-            _visionProcessInput[EVisionProcessInput.TRANSFER_REQUEST_VISION_CHECK].MapTo(_transferProcessOutput[ETransferProcessOutput.TRANSFER_REQUEST_VISION_CHECK]);
+            _transferProcessInput[ETransferProcessInput.VISION_INSPECT1_DONE].MapTo(_visionProcessOutput[EVisionProcessOutput.VISION_INSPECT1_DONE]);
+            _transferProcessInput[ETransferProcessInput.VISION_INSPECT2_DONE].MapTo(_visionProcessOutput[EVisionProcessOutput.VISION_INSPECT2_DONE]);
+            _visionProcessInput[EVisionProcessInput.TRANSFER_REQ_INSPECT1].MapTo(_transferProcessOutput[ETransferProcessOutput.TRANSFER_REQ_INSPECT1]);
+            _visionProcessInput[EVisionProcessInput.TRANSFER_REQ_INSPECT2].MapTo(_transferProcessOutput[ETransferProcessOutput.TRANSFER_REQ_INSPECT2]);
             #endregion
         }
     }
