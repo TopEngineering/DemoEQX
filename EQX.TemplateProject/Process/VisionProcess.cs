@@ -30,10 +30,9 @@ namespace EQX.TemplateProject.Process
         private readonly RecipeList _recipeList;
         private readonly ICamera? _camera;
         private readonly IVisionFlow? _flow;
-        private ECylinder CurrentCylinder = ECylinder.PickHead1UpDown;
+        private ECylinder CurrentCylinder = ECylinder.PickHead1;
         private readonly Stopwatch _timer = new();
         private Task<GrabData>? _grab;
-        private Task _cleanup = Task.CompletedTask;
         private int RetryCount;
         private CommonRecipe Recipe => _recipeList.CommonRecipe;
         #endregion
@@ -41,31 +40,36 @@ namespace EQX.TemplateProject.Process
 
         private IDInputDevice VirtualInput => _virtualIO.VisionProcessInput;
         private IDOutputDevice VirtualOutput => _virtualIO.VisionProcessOutput;
-        private bool FlagTransferHead1VisionPositionReady
+        private bool FlagTransferRequestVisionInspect1
         {
-            get { return VirtualInput[(int)EVisionProcessInput.TRANSFER_HEAD1_VISION_POSITION_READY]; }
+            get { return VirtualInput[(int)EVisionProcessInput.TRANSFER_REQ_INSPECT1]; }
         }
-        private bool FlagTransferHead2VisionPositionReady
+        private bool FlagTransferRequestVisionInspect2
         {
-            get { return VirtualInput[(int)EVisionProcessInput.TRANSFER_HEAD2_VISION_POSITION_READY]; }
+            get { return VirtualInput[(int)EVisionProcessInput.TRANSFER_REQ_INSPECT2]; }
         }
-        private bool FlagTransferRequestVisionCheck
+        private bool FlagVisionInspect1Done
         {
-            get { return VirtualInput[(int)EVisionProcessInput.TRANSFER_REQUEST_VISION_CHECK]; }
+            set { VirtualOutput[(int)EVisionProcessOutput.VISION_INSPECT1_DONE] = value; }
         }
-        private bool FlagVisionRequestHead1Position
+        private bool FlagVisionInspect2Done
         {
-            set { VirtualOutput[(int)EVisionProcessOutput.VISION_REQUEST_HEAD1_POSITION] = value; }
+            set { VirtualOutput[(int)EVisionProcessOutput.VISION_INSPECT2_DONE] = value; }
         }
-        private bool FlagVisionRequestHead2Position
+        #endregion
+        #region IsBool
+        private bool IsCurrentHeadSkipped => CurrentCylinder switch
         {
-            set { VirtualOutput[(int)EVisionProcessOutput.VISION_REQUEST_HEAD2_POSITION] = value; }
-        }
-        private bool FlagVisionRequestPlace
+            ECylinder.PickHead1 => Recipe.SkipCylinder1,
+            ECylinder.PickHead2 => Recipe.SkipCylinder2,
+            _ => false,
+        };
+        private bool IsTransferRequest => CurrentCylinder switch
         {
-            set { VirtualOutput[(int)EVisionProcessOutput.VISION_REQ_PLACE] = value; }
-        }
-
+            ECylinder.PickHead1 => FlagTransferRequestVisionInspect1,
+            ECylinder.PickHead2 => FlagTransferRequestVisionInspect2,
+            _ => false,
+        };
         #endregion
         #region Constructors
         public VisionProcess(Devices devices, VirtualIO virtualIO, RecipeList recipeList,
@@ -104,7 +108,7 @@ namespace EQX.TemplateProject.Process
             switch(Sequence)
             {
                 case ESequence.Stop:
-                    if (FlagTransferRequestVisionCheck)
+                    if (FlagTransferRequestVisionInspect1 || FlagTransferRequestVisionInspect2)
                         Sequence = ESequence.Inspect;
                     else Wait(50);
                     break;
@@ -169,7 +173,7 @@ namespace EQX.TemplateProject.Process
                     Step.RunStep++;
                     break;
                 case EVisionProcessAutoRunStep.WaitTransferRequest:
-                    if (!FlagTransferRequestVisionCheck)
+                    if (!FlagTransferRequestVisionInspect1 && !FlagTransferRequestVisionInspect2)
                     {
                         Wait(50);
                         break;
@@ -191,35 +195,39 @@ namespace EQX.TemplateProject.Process
                     RetryCount = 0;
                     Step.RunStep++;
                     break;
-                case EVisionProcessCheckStep.IfSkipVision:
-                    Log.Debug("Skip Vision");
-                    if (Recipe.SkipVisionCheck)
+                case EVisionProcessCheckStep.FlagTranserREQInspect:
+                    if (!FlagTransferRequestVisionInspect1 && !FlagTransferRequestVisionInspect2)
                     {
-                        Sequence = ESequence.Stop;
+                        Wait(50);
                         break;
                     }
+                    Log.Debug("Transfer Request Inspect");
                     Step.RunStep++;
                     break;
                 case EVisionProcessCheckStep.SetCurrentHead:
-                    Log.Debug("Set Current Head");
-                    RetryCount = 0;
-                    Step.RunStep++;
+                    CurrentCylinder = ECylinder.PickHead1;
+                    if (!Recipe.SkipCylinder1 && FlagTransferRequestVisionInspect1)
+                    {
+                        Log.Debug($"Under Vision {CurrentCylinder} Start");
+                        Step.RunStep++;
+                    }
+                    else
+                    {
+                        Step.RunStep = (int)EVisionProcessCheckStep.UpdateCurrentHead;
+                    }
                     break;
-                case EVisionProcessCheckStep.Cylinder_Move_VisionPosition:
-                    FlagVisionRequestHead1Position = true;
-                    FlagVisionRequestHead2Position = true;
-                    Log.Debug("Cylinder Move Vision Position");
-                    Step.RunStep++;
-                    break;
-                case EVisionProcessCheckStep.Cylinder_Move_VisionPosition_Wait:
-#if !SIMULATION 
-                    if (WaitTimeOutOccurred)
+                case EVisionProcessCheckStep.Head_Move_UnderVisionPosition_Wait:
+                    if (IsCurrentHeadSkipped || IsTransferRequest)
+                    {
+                        Step.RunStep++;
+                        break;
+                    }
+                    else if (WaitTimeOutOccurred)
                     {
                         RaiseAlarm(EAlarm.CylinderMoveVisionPositionTimeOut);
                         break;
                     }
-#endif
-                    Log.Debug("Cylinder Move Vision Position Done");
+
                     Step.RunStep++;
                     break;
                 case EVisionProcessCheckStep.ImageGrab:
@@ -235,21 +243,71 @@ namespace EQX.TemplateProject.Process
                     }
 #endif
                     Log.Debug("Image Grab Done");
+                    if (CurrentCylinder == ECylinder.PickHead1)
+                    {
+                        Step.RunStep = (int)EVisionProcessCheckStep.VisionInspect1;
+                    }
+                    else
+                    {
+                        Step.RunStep = (int)EVisionProcessCheckStep.VisionInspect2;
+                    }
+                    break;
+                case EVisionProcessCheckStep.VisionInspect1:
+                    if (Recipe.SkipCylinder1)
+                    {
+                        Step.RunStep++;
+                        break;
+                    }
+                    Log.Debug("Vision Inspect 1");
                     Step.RunStep++;
                     break;
-                case EVisionProcessCheckStep.VisionInspect:
-                    Log.Debug("Vision Inspect");
-                    Step.RunStep++;
-                    break;
-                case EVisionProcessCheckStep.VisionInspect_Wait:
+                case EVisionProcessCheckStep.VisionInspect1_Wait:
+                    if (Recipe.SkipCylinder1)
+                    {
+                        Step.RunStep++;
+                        break;
+                    }
 #if !SIMULATION
                     if(WaitTimeOutOccurred)
                     {
                         RaiseAlarm(EAlarm.VisionInspectTimeOut);
                         break;
                     }
-#endif                 
-                    Log.Debug("Vision Inspect Done");
+#endif
+                    FlagVisionInspect1Done = true;
+                    Log.Debug("Vision Inspect 1 Done");
+                    Step.RunStep++;
+                    break;
+                case EVisionProcessCheckStep.VisionInspect2:
+                    if (CurrentCylinder == ECylinder.PickHead1)
+                    {
+                        Step.RunStep = (int)EVisionProcessCheckStep.VisionRetryCheck;
+                        break;
+                    }
+                    if (Recipe.SkipCylinder2)
+                    {
+                        Step.RunStep++;
+                        break;
+                    }
+                    Log.Debug("Vision Inspect 2");
+                    Step.RunStep++;
+                    break;
+                case EVisionProcessCheckStep.VisionInspect2_Wait:
+                    if (Recipe.SkipCylinder2)
+                    {
+                        Step.RunStep++;
+                        break;
+                    }
+#if !SIMULATION
+                    if (WaitTimeOutOccurred)
+                    {
+                        Log.Error("Vision Inspect 2 timeout");
+                        RaiseAlarm(EAlarm.VisionInspectTimeOut);
+                        break;
+                    }
+#endif
+                    FlagVisionInspect2Done = true;
+                    Log.Debug("Vision Inspect 2 Done");
                     Step.RunStep++;
                     break;
                 case EVisionProcessCheckStep.VisionRetryCheck:
@@ -261,37 +319,45 @@ namespace EQX.TemplateProject.Process
                     Step.RunStep++;
                     break;
                 case EVisionProcessCheckStep.UpdateCurrentHead:
-                    Log.Debug("Update Current Head");
-                    Step.RunStep++;
+                    if (CurrentCylinder == ECylinder.PickHead1)
+                    {
+                        if (Recipe.SkipCylinder2 || !FlagTransferRequestVisionInspect2)
+                        {
+                            Step.RunStep = (int)EVisionProcessCheckStep.End;
+                            break;
+                        }
+                        CurrentCylinder = ECylinder.PickHead2;
+                        Log.Debug($"Under Vision {CurrentCylinder} Start");
+                        RetryCount = 0;
+                        Step.RunStep = (int)EVisionProcessCheckStep.Head_Move_UnderVisionPosition_Wait;
+                    }
+                    else
+                    {
+                        Step.RunStep = (int)EVisionProcessCheckStep.End;
+                    }
                     break;
                 case EVisionProcessCheckStep.Vision_CheckDone:
+                    FlagVisionInspect1Done = true;
+                    FlagVisionInspect2Done = true;
+                    _timer.Restart();
                     Log.Debug("Vision Check Done");
                     Step.RunStep++;
                     break;
                 case EVisionProcessCheckStep.Vision_ClearFlags:
-                    ((MappableOutputDevice<EVisionProcessOutput>)VirtualOutput).ClearOutputs();
-                    Log.Debug("Vision Clear Flag");
-                    Step.RunStep++;
-                    break;
-                case EVisionProcessCheckStep.RequestTransferPlace:
-                    FlagVisionRequestPlace = true;
-                    _timer.Restart();
-                    Log.Debug("Request Transfer Place");
-                    Step.RunStep++;
-                    break;
-                case EVisionProcessCheckStep.TransferRequestOff_Wait:
-                    if (FlagTransferRequestVisionCheck)
+                    if (FlagTransferRequestVisionInspect1 || FlagTransferRequestVisionInspect2)
                     {
                         if (_timer.ElapsedMilliseconds >= 10000)
                         {
-                            FlagVisionRequestPlace = false;
                             RaiseAlarm(EAlarm.VisionInspectTimeOut);
                             break;
                         }
-                        Wait(50);
+                        Wait(20);
                         break;
                     }
-                    Log.Debug("Transfer Place Request Done");
+                    ((MappableOutputDevice<EVisionProcessOutput>)VirtualOutput).ClearOutputs();
+                    FlagVisionInspect1Done = false;
+                    FlagVisionInspect2Done = false;
+                    Log.Debug("Vision Clear Flag");
                     Step.RunStep++;
                     break;
                 case EVisionProcessCheckStep.End:
