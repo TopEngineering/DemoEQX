@@ -5,7 +5,6 @@
         Start,
         FlagTranserREQInspect,
         SetCurrentHead,
-        Head_Move_UnderVisionPosition_Wait,
         ImageGrab,
         ImageGrab_Wait,
         VisionInspect1,

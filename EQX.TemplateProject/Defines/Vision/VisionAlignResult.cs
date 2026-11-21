@@ -1,22 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using EQX.Core.Vision;
 
 namespace EQX.TemplateProject.Defines.Vision
 {
-    public enum EVisionAlignResult
-    {
-        OK,
-        NG,
-    }
-
     public class VisionAlignResult
     {
         public double X { get; set; }
         public double Y { get; set; }
         public double T { get; set; }
-        public EVisionAlignResult Result { get; set; }
+        public EVisionJudge Judge { get; set; } = EVisionJudge.NG;
+        public string NGMessage { get; set; } = string.Empty;
+
+        public void Reset()
+        {
+            X = 0;
+            Y = 0;
+            T = 0;
+            Judge = EVisionJudge.NG;
+            NGMessage = string.Empty;
+        }
     }
 }

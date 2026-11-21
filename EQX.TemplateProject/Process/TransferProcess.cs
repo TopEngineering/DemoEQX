@@ -7,6 +7,10 @@ using EQX.TemplateProject.Defines;
 using EQX.TemplateProject.Defines.Devices;
 using EQX.TemplateProject.Defines.Process.Step.TransferProcess;
 using EQX.TemplateProject.Recipe;
+using EQX.TemplateProject.Defines.Cylinder;
+using EQX.Core.Vision;
+using EQX.TemplateProject.Defines.Vision;
+using System.Diagnostics.Eventing.Reader;
 
 namespace EQX.TemplateProject.Process
 {
@@ -16,6 +20,11 @@ namespace EQX.TemplateProject.Process
         private readonly Devices _devices;
         private readonly VirtualIO _virtualIO;
         private readonly RecipeList _recipeList;
+        private readonly CVisionAlignResults _visionAlignResults;
+        private double _placeX;
+        private double _placeY;
+        VisionAlignResult visionResult;
+        private ECylinder CurrentCylinder = ECylinder.PickHead1;
 
         private IMotion XAxis => _devices.Motions.TransferXAxis;
         private IMotion YAxis => _devices.Motions.TransferYAxis;
@@ -49,11 +58,13 @@ namespace EQX.TemplateProject.Process
         public TransferProcess(Devices devices,
             VirtualIO virtualIO,
             RecipeList recipeList,
-            MachineStatus machineStatus)
+            MachineStatus machineStatus,
+            CVisionAlignResults visionAlignResults)
         {
             _devices = devices;
             _virtualIO = virtualIO;
             _recipeList = recipeList;
+            _visionAlignResults = visionAlignResults;
         }
         #endregion
 
@@ -140,28 +151,29 @@ namespace EQX.TemplateProject.Process
                     Sequence_Pick();
                     break;
                 case ESequence.Inspect:
-                    if (Step.RunStep == 0)
+                    switch (Step.RunStep)
                     {
-                        if ((!_recipeList.CommonRecipe.SkipCylinder1 && !FlagVisionInspect1Done) ||
-                            (!_recipeList.CommonRecipe.SkipCylinder2 && !FlagVisionInspect2Done))
-                        {
-                            Wait(50);
+                        case 0:
+                            if ((!_recipeList.CommonRecipe.SkipCylinder1 && !FlagVisionInspect1Done) || (!_recipeList.CommonRecipe.SkipCylinder2 && !FlagVisionInspect2Done))
+                            {
+                                Wait(50);
+                                break;
+                            }
+                            FlagRequestVisionInspect1 = false;
+                            FlagRequestVisionInspect2 = false;
+                            Log.Debug("Vision completed");
+                            Step.RunStep++;
                             break;
-                        }
-                        FlagRequestVisionInspect1 = false;
-                        FlagRequestVisionInspect2 = false;
-                        Log.Debug("Vision completed");
-                        Step.RunStep++;
-                        break;
+                        case 1:
+                            if (FlagVisionInspect1Done || FlagVisionInspect2Done)
+                            {
+                                Wait(50);
+                                break;
+                            }
+                            Log.Debug("Start Place");
+                            Sequence = ESequence.Place;
+                            break;
                     }
-                    if (FlagVisionInspect1Done || FlagVisionInspect2Done)
-                    {
-                        Wait(50);
-                        break;
-                    }
-
-                    Log.Debug("Vision Done");
-                    Sequence = ESequence.Place;
                     break;
                 case ESequence.Place:
                     Sequence_Place();
@@ -688,9 +700,12 @@ namespace EQX.TemplateProject.Process
                 case ETransferProcessPickStep.IfSkipVision:
                     if(!_recipeList.CommonRecipe.SkipVisionCheck)
                     {
-                        FlagRequestVisionInspect1 = true;
-                        FlagRequestVisionInspect2 = true;
                         Sequence = ESequence.Inspect;
+                        if (CurrentCylinder == ECylinder.PickHead1)
+                        {
+                            FlagRequestVisionInspect1 = true;
+                        }
+                        FlagRequestVisionInspect2 = true;
                         Log.Debug("Vision Check");
                         break;
                     }
@@ -708,6 +723,35 @@ namespace EQX.TemplateProject.Process
             switch ((ETransferProcessPlaceStep)Step.RunStep)
             {
                 case ETransferProcessPlaceStep.Start:
+
+                    if (!_recipeList.CommonRecipe.SkipVisionCheck)
+                    {
+                        visionResult = null;
+
+                        if (CurrentCylinder == ECylinder.PickHead1)
+                        {
+                            visionResult = _visionAlignResults.VisionAlignResult1;
+                        }
+                        else if (CurrentCylinder == ECylinder.PickHead2)
+                        {
+                            visionResult = _visionAlignResults.VisionAlignResult2;
+                        }
+                        if (CurrentCylinder == ECylinder.PickHead1 && visionResult.Judge == EVisionJudge.OK)
+                        {
+                            Step.RunStep++;
+                            break;
+                        }
+                        else if (CurrentCylinder == ECylinder.PickHead2 && visionResult.Judge == EVisionJudge.OK)
+                        {
+                            Step.RunStep++;
+                            break;
+                        }
+                        else if ((CurrentCylinder == ECylinder.PickHead1 && visionResult.Judge == EVisionJudge.NG)|| (CurrentCylinder == ECylinder.PickHead2 && visionResult.Judge == EVisionJudge.NG))
+                        {
+                            _placeX += visionResult.X;
+                            _placeY += visionResult.Y;
+                        }
+                    }
                     Log.Debug("Place Start");
                     Step.RunStep++;
                     break;

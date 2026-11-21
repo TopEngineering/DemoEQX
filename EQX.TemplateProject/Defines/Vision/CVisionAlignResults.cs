@@ -10,5 +10,17 @@ namespace EQX.TemplateProject.Defines.Vision
     {
         public VisionAlignResult VisionAlignResult1 { get; set; }
         public VisionAlignResult VisionAlignResult2 { get; set; }
+
+        public CVisionAlignResults()
+        {
+            VisionAlignResult1 = new VisionAlignResult();
+            VisionAlignResult2 = new VisionAlignResult();
+        }
+
+        public void Reset()
+        {
+            VisionAlignResult1.Reset();
+            VisionAlignResult2.Reset();
+        }
     }
 }
