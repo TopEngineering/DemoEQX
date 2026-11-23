@@ -205,10 +205,8 @@ namespace EQX.TemplateProject.Process
                     break;
                 case EVisionProcessCheckStep.SetCurrentHead:
                     CurrentCylinder = ECylinder.PickHead1;
-                    _timer.Restart();
                     if (!Recipe.SkipCylinder1)
                     {
-                        Log.Debug($"Under Vision {CurrentCylinder} Start");
                         Step.RunStep = (int)EVisionProcessCheckStep.ImageGrab;
                     }
                     else
@@ -220,11 +218,6 @@ namespace EQX.TemplateProject.Process
                     if ((CurrentCylinder == ECylinder.PickHead1 && !FlagTransferRequestVisionInspect1) ||
                         (CurrentCylinder == ECylinder.PickHead2 && !FlagTransferRequestVisionInspect2))
                     {
-                        if (_timer.Elapsed.TotalSeconds >= Recipe.MotionMoveTimeOut)
-                        {
-                            RaiseAlarm(EAlarm.CylinderMoveVisionPositionTimeOut);
-                            break;
-                        }
                         Wait(20);
                         break;
                     }
@@ -232,14 +225,6 @@ namespace EQX.TemplateProject.Process
                     Step.RunStep++;
                     break;
                 case EVisionProcessCheckStep.ImageGrab_Wait:
-#if !SIMULATION
-                    if (WaitTimeOutOccurred)
-                    {
-                        RaiseAlarm(EAlarm.ImageGrabTimeOut);
-                        break;
-                    }
-#endif
-                    Log.Debug("Image Grab Done");
                     if (CurrentCylinder == ECylinder.PickHead1)
                     {
                         Step.RunStep = (int)EVisionProcessCheckStep.VisionInspect1;
@@ -248,6 +233,14 @@ namespace EQX.TemplateProject.Process
                     {
                         Step.RunStep = (int)EVisionProcessCheckStep.VisionInspect2;
                     }
+#if !SIMULATION
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.ImageGrabTimeOut);
+                        break;
+                    }
+#endif
+                    Log.Debug("Image Grab Done");
                     break;
                 case EVisionProcessCheckStep.VisionInspect1:
                     if (Recipe.SkipCylinder1)
@@ -271,7 +264,6 @@ namespace EQX.TemplateProject.Process
                         break;
                     }
 #endif
-                    _visionAlignResults.VisionAlignResult1.Judge = EVisionJudge.OK;
                     Log.Debug("Vision Inspect 1 Done");
                     Step.RunStep++;
                     break;
@@ -303,34 +295,31 @@ namespace EQX.TemplateProject.Process
                         break;
                     }
 #endif
-                    _visionAlignResults.VisionAlignResult2.Judge = EVisionJudge.OK;
                     Log.Debug("Vision Inspect 2 Done");
                     Step.RunStep++;
                     break;
                 case EVisionProcessCheckStep.VisionRetryCheck:
                 {
-                    if (IsCurrentHeadSkipped)
+                    if (result.Judge == EVisionJudge.OK || IsCurrentHeadSkipped)
                     {
                         Step.RunStep++;
                         break;
                     }
+                    else if (result.Judge == EVisionJudge.NG)
+                    {
+                        if (RetryCount < _recipeList.VisionRecipe.RetryCount)
+                        {
+                            RetryCount++;
+                            Step.RunStep = (int)EVisionProcessCheckStep.ImageGrab;
+                            break;
+                        }
+                            Log.Debug("Vision Result NG");
+                            break;
+                    }    
                     if (CurrentCylinder == ECylinder.PickHead1)
                         result = _visionAlignResults.VisionAlignResult1;
                     else
                         result = _visionAlignResults.VisionAlignResult2;
-
-                    if (result.Judge == EVisionJudge.OK)
-                    {
-                        Step.RunStep++;
-                        break;
-                    }
-
-                    if (RetryCount < _recipeList.VisionRecipe.RetryCount)
-                    {
-                        RetryCount++;
-                        Step.RunStep = (int)EVisionProcessCheckStep.ImageGrab;
-                        break;
-                    }
                     Log.Debug("Vision Retry Check");
                     Step.RunStep++;
                     break;
@@ -344,23 +333,14 @@ namespace EQX.TemplateProject.Process
                     Step.RunStep++;
                     break;
                 case EVisionProcessCheckStep.UpdateCurrentHead:
-                    if (CurrentCylinder == ECylinder.PickHead1)
+                    if (Recipe.SkipCylinder2)
                     {
-                        if (Recipe.SkipCylinder2)
-                        {
-                            Step.RunStep = (int)EVisionProcessCheckStep.Vision_CheckDone;
-                            break;
-                        }
-                        CurrentCylinder = ECylinder.PickHead2;
-                        Log.Debug($"Under Vision {CurrentCylinder} Start");
-                        RetryCount = 0;
-                        _timer.Restart();
-                        Step.RunStep = (int)EVisionProcessCheckStep.ImageGrab;
+                        Sequence = ESequence.Stop;
+                        break;
                     }
-                    else
-                    {
-                        Step.RunStep = (int)EVisionProcessCheckStep.Vision_CheckDone;
-                    }
+                    CurrentCylinder = ECylinder.PickHead2;
+                    Step.RunStep = (int)EVisionProcessCheckStep.ImageGrab;
+                    Log.Debug($"Under Vision {CurrentCylinder} Start");
                     break;
                 case EVisionProcessCheckStep.Vision_CheckDone:
                     _timer.Restart();
@@ -370,11 +350,6 @@ namespace EQX.TemplateProject.Process
                 case EVisionProcessCheckStep.Vision_ClearFlags:
                     if (FlagTransferRequestVisionInspect1 || FlagTransferRequestVisionInspect2)
                     {
-                        if (_timer.ElapsedMilliseconds >= 10000)
-                        {
-                            RaiseAlarm(EAlarm.VisionInspectTimeOut);
-                            break;
-                        }
                         Wait(20);
                         break;
                     }
