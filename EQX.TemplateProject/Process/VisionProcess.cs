@@ -208,12 +208,10 @@ namespace EQX.TemplateProject.Process
                     if (!Recipe.SkipCylinder1)
                     {
                         Step.RunStep = (int)EVisionProcessCheckStep.ImageGrab;
+                        break;
                     }
-                    else
-                    {
                         Step.RunStep = (int)EVisionProcessCheckStep.UpdateCurrentHead;
-                    }
-                    break;
+                        break;
                 case EVisionProcessCheckStep.ImageGrab:
                     if ((CurrentCylinder == ECylinder.PickHead1 && !FlagTransferRequestVisionInspect1) ||
                         (CurrentCylinder == ECylinder.PickHead2 && !FlagTransferRequestVisionInspect2))
@@ -264,6 +262,9 @@ namespace EQX.TemplateProject.Process
                         break;
                     }
 #endif
+#if SIMULATION
+                    _visionAlignResults.VisionAlignResult1.Judge = EVisionJudge.OK;
+#endif
                     Log.Debug("Vision Inspect 1 Done");
                     Step.RunStep++;
                     break;
@@ -295,12 +296,18 @@ namespace EQX.TemplateProject.Process
                         break;
                     }
 #endif
+#if SIMULATION
+                    _visionAlignResults.VisionAlignResult2.Judge = EVisionJudge.OK;
+#endif
                     Log.Debug("Vision Inspect 2 Done");
                     Step.RunStep++;
                     break;
                 case EVisionProcessCheckStep.VisionRetryCheck:
-                {
-                    if (result.Judge == EVisionJudge.OK || IsCurrentHeadSkipped)
+                    if (CurrentCylinder == ECylinder.PickHead1)
+                        result = _visionAlignResults.VisionAlignResult1;
+                    else
+                        result = _visionAlignResults.VisionAlignResult2;
+                    if (result.Judge == EVisionJudge.OK)
                     {
                         Step.RunStep++;
                         break;
@@ -314,16 +321,12 @@ namespace EQX.TemplateProject.Process
                             break;
                         }
                             Log.Debug("Vision Result NG");
+                            Step.RunStep++;
                             break;
                     }    
-                    if (CurrentCylinder == ECylinder.PickHead1)
-                        result = _visionAlignResults.VisionAlignResult1;
-                    else
-                        result = _visionAlignResults.VisionAlignResult2;
                     Log.Debug("Vision Retry Check");
                     Step.RunStep++;
                     break;
-                }
                 case EVisionProcessCheckStep.ResultUpdate:
                     if (CurrentCylinder == ECylinder.PickHead1)
                         FlagVisionInspect1Done = true;
@@ -333,17 +336,19 @@ namespace EQX.TemplateProject.Process
                     Step.RunStep++;
                     break;
                 case EVisionProcessCheckStep.UpdateCurrentHead:
-                    if (Recipe.SkipCylinder2)
+                    if (CurrentCylinder == ECylinder.PickHead1 && !Recipe.SkipCylinder2)
                     {
-                        Sequence = ESequence.Stop;
-                        break;
+                        CurrentCylinder = ECylinder.PickHead2;
+                        RetryCount = 0;
+                        Log.Debug($"Under Vision Start");
+                        Step.RunStep = (int)EVisionProcessCheckStep.ImageGrab;
                     }
-                    CurrentCylinder = ECylinder.PickHead2;
-                    Step.RunStep = (int)EVisionProcessCheckStep.ImageGrab;
-                    Log.Debug($"Under Vision {CurrentCylinder} Start");
+                    else
+                    {
+                        Step.RunStep = (int)EVisionProcessCheckStep.Vision_CheckDone;
+                    }
                     break;
                 case EVisionProcessCheckStep.Vision_CheckDone:
-                    _timer.Restart();
                     Log.Debug("Vision Check Done");
                     Step.RunStep++;
                     break;

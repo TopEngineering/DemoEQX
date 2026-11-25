@@ -11,6 +11,7 @@ using EQX.TemplateProject.Defines.Cylinder;
 using EQX.Core.Vision;
 using EQX.TemplateProject.Defines.Vision;
 using System.Diagnostics.Eventing.Reader;
+using EQX.TemplateProject.Defines.Process.Step.VisionProcess;
 
 namespace EQX.TemplateProject.Process
 {
@@ -172,6 +173,7 @@ namespace EQX.TemplateProject.Process
                             }
                             Log.Debug("Start Place");
                             Sequence = ESequence.Place;
+                            Step.RunStep = (int)ETransferProcessPlaceStep.Start;
                             break;
                     }
                     break;
@@ -407,12 +409,12 @@ namespace EQX.TemplateProject.Process
                     break;
                 case ETransferProcessPickStep.ZAxis_MovePickPosition:
                     Log.Debug("Z Axis Move to Pick Position");
-                    ZAxis.MoveAbs(_recipeList.TransferRecipe.ZAxisPlacePosition);
+                    ZAxis.MoveAbs(_recipeList.TransferRecipe.ZAxisPickPosition);
 #if SIMULATION
                     Wait(100);
 #else
                     Wait((int)(_recipeList.CommonRecipe.MotionMoveTimeOut * 1000),
-                        () => ZAxis.IsOnPosition(_recipeList.TransferRecipe.PickZ));
+                        () => ZAxis.IsOnPosition(_recipeList.TransferRecipe.ZAxisPickPosition));
 #endif
                     Step.RunStep++;
                     break;
@@ -490,6 +492,8 @@ namespace EQX.TemplateProject.Process
                     Log.Debug("Cylinder1 Up");
                     _devices.Outputs.Cylinder1Up.Value = true;
                     Wait(100);
+                    Wait((int)(_recipeList.CommonRecipe.CylinderMoveTimeout * 1000),
+                        () => Cylinder1.IsForward);
                     Step.RunStep++;
                     break;
                 case ETransferProcessPickStep.Cylinders1_Up_Wait:
@@ -506,6 +510,32 @@ namespace EQX.TemplateProject.Process
                     }
 #endif
                     Log.Debug("Cylinder1 Up Done");
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPickStep.ZAxis_MovePickHead2Position:
+                {
+                    if (_recipeList.CommonRecipe.SkipCylinder2)
+                    {
+                        Step.RunStep = (int)ETransferProcessPickStep.XAxis_MoveInspectVision1;
+                        break;
+                    }
+                    double targetZ = _recipeList.TransferRecipe.ZAxisPickPosition + _recipeList.TransferRecipe.Picker2OffsetPick;
+                    ZAxis.MoveAbs(targetZ);                  
+                    Wait((int)(_recipeList.CommonRecipe.MotionMoveTimeOut * 1000),
+                        () => ZAxis.IsOnPosition(targetZ));
+                    Log.Debug($"Z Axis Move Pick Head 2 Position");
+                    Step.RunStep++;
+                    break;
+                }
+                case ETransferProcessPickStep.ZAxis_MovePickHead2Position_Wait:
+#if !SIMULATION
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TransferZAxis_PickTimeout);
+                        return;
+                    }
+#endif
+                    Log.Debug("Z Axis Move Pick Head 2 Position Done");
                     Step.RunStep++;
                     break;
                 case ETransferProcessPickStep.Cylinders2_Down:
@@ -590,10 +620,15 @@ namespace EQX.TemplateProject.Process
                     Step.RunStep++;
                     break;
                 case ETransferProcessPickStep.XAxis_MoveInspectVision1:
-                    Log.Debug("X Axis Move To Inspect Vision 1");
+                    if(_recipeList.CommonRecipe.SkipCylinder1)
+                    {
+                        Step.RunStep = (int)ETransferProcessPickStep.XAxis_MoveInspectVision2;
+                        break;
+                    }    
                     XAxis.MoveAbs(_recipeList.TransferRecipe.XAxisInspectPosition1);
                     Wait((int)(_recipeList.CommonRecipe.MotionMoveTimeOut * 1000),
                         () => XAxis.IsOnPosition(_recipeList.TransferRecipe.XAxisInspectPosition1));
+                    Log.Debug("X Axis Move To Inspect Vision 1");
                     Step.RunStep++;
                     break;
                 case ETransferProcessPickStep.XAxis_MoveInspectVision1_Wait:
@@ -644,10 +679,15 @@ namespace EQX.TemplateProject.Process
                     Step.RunStep++;
                     break;
                 case ETransferProcessPickStep.XAxis_MoveInspectVision2:
-                    Log.Debug("X Axis Move To Inspect Vision 2");
+                    if (_recipeList.CommonRecipe.SkipCylinder2)
+                    {
+                        Step.RunStep = (int)ETransferProcessPickStep.IfSkipVision;
+                        break;
+                    }
                     XAxis.MoveAbs(_recipeList.TransferRecipe.XAxisInspectPosition2);
                     Wait((int)(_recipeList.CommonRecipe.MotionMoveTimeOut * 1000),
                         () => XAxis.IsOnPosition(_recipeList.TransferRecipe.XAxisInspectPosition2));
+                    Log.Debug("X Axis Move To Inspect Vision 2");
                     Step.RunStep++;
                     break;
                 case ETransferProcessPickStep.XAxis_MoveInspectVision2_Wait:
@@ -698,18 +738,17 @@ namespace EQX.TemplateProject.Process
                     Step.RunStep++;
                     break;
                 case ETransferProcessPickStep.IfSkipVision:
-                    if(!_recipeList.CommonRecipe.SkipVisionCheck)
+                    if (!_recipeList.CommonRecipe.SkipVisionCheck && (!_recipeList.CommonRecipe.SkipCylinder1|| !_recipeList.CommonRecipe.SkipCylinder2))
                     {
-                        Sequence = ESequence.Inspect;
-                        if (CurrentCylinder == ECylinder.PickHead1)
-                        {
-                            FlagRequestVisionInspect1 = true;
-                        }
-                        FlagRequestVisionInspect2 = true;
+                        FlagRequestVisionInspect1 = !_recipeList.CommonRecipe.SkipCylinder1;
+                        FlagRequestVisionInspect2 = !_recipeList.CommonRecipe.SkipCylinder2;
                         Log.Debug("Vision Check");
+                        Sequence = ESequence.Inspect;
+                        Step.RunStep = 0;
                         break;
                     }
-                    Step.RunStep++;
+                    Log.Debug("Skip Vision");
+                    Step.RunStep = (int)ETransferProcessPickStep.End;
                     break;
                 case ETransferProcessPickStep.End:
                     Log.Debug("Pick End");
@@ -723,6 +762,8 @@ namespace EQX.TemplateProject.Process
             switch ((ETransferProcessPlaceStep)Step.RunStep)
             {
                 case ETransferProcessPlaceStep.Start:
+                    _placeX = _recipeList.TransferRecipe.XAxisPlacePosition;
+                    _placeY = _recipeList.TransferRecipe.YAxisPlacePosition;
 
                     if (!_recipeList.CommonRecipe.SkipVisionCheck)
                     {
@@ -750,6 +791,8 @@ namespace EQX.TemplateProject.Process
                         {
                             _placeX += visionResult.X;
                             _placeY += visionResult.Y;
+                            XAxis.MoveAbs(_placeX);
+                            YAxis.MoveAbs(_placeY);
                         }
                     }
                     Log.Debug("Place Start");
@@ -903,6 +946,28 @@ namespace EQX.TemplateProject.Process
 #endif
                     Log.Debug("Cylinder 1 Up Done");
                     _devices.Outputs.Vacuum1Blow.Value = false;
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPlaceStep.ZAxis_MovePlaceHead2Position:
+                    if(_recipeList.CommonRecipe.SkipCylinder2)
+                    {
+                        Step.RunStep = (int)ETransferProcessPlaceStep.End;
+                        break;
+                    }
+                    double targetz = _recipeList.TransferRecipe.ZAxisPlacePosition + _recipeList.TransferRecipe.Picker2OffsetPlace;
+                    ZAxis.MoveAbs(targetz);
+                    Wait((int)(_recipeList.CommonRecipe.MotionMoveTimeOut * 1000),
+                        () => ZAxis.IsOnPosition(targetz));
+                    Log.Debug($"Z Axis Move Place Head 2 Position");
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPlaceStep.ZAxis_MovePlaceHead2Position_Wait:
+                    if(WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TransferZAxis_PlaceTimeout);
+                        break;
+                    }
+                    Log.Debug("Z Axis Move Place Head2 Position Done");
                     Step.RunStep++;
                     break;
                 case ETransferProcessPlaceStep.Cylinders2_Down:
