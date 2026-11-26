@@ -136,8 +136,13 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <Border Background="#FFDEAD" BorderThickness="0" Cursor="Arrow">
-                        <TextBlock Text="Input Tray" FontSize="18" FontWeight="SemiBold"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <DockPanel Margin="8,0">
+                            <Button DockPanel.Dock="Right" Content="Reset Input" Padding="12,4"
+                                    Command="{Binding ResetInputCommand}"
+                                    IsEnabled="{Binding MachineStatus.IsStandByProcessMode}" />
+                            <TextBlock Text="Input Tray" FontSize="18" FontWeight="SemiBold"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </DockPanel>
                     </Border>
                     <ItemsControl Grid.Row="1" ItemsSource="{Binding TrayData.InputTray.Cells}"
                                   ItemTemplate="{StaticResource TrayCellTemplate}">
@@ -157,8 +162,13 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <Border Background="#20B2AA" BorderThickness="0" Cursor="Arrow">
-                        <TextBlock Text="Output Tray" FontSize="18" FontWeight="SemiBold"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <DockPanel Margin="8,0">
+                            <Button DockPanel.Dock="Right" Content="Reset Output" Padding="12,4"
+                                    Command="{Binding ResetOutputCommand}"
+                                    IsEnabled="{Binding MachineStatus.IsStandByProcessMode}" />
+                            <TextBlock Text="Output Tray" FontSize="18" FontWeight="SemiBold"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </DockPanel>
                     </Border>
                     <ItemsControl Grid.Row="1" ItemsSource="{Binding TrayData.OutputTray.Cells}"
                                   ItemTemplate="{StaticResource TrayCellTemplate}">

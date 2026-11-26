@@ -122,6 +122,9 @@ namespace EQX.TemplateProject.MVVM.ViewModels
         }
 
         #region Commands
+        public ICommand ResetInputCommand => new RelayCommand(TrayData.ResetInputTray);
+        public ICommand ResetOutputCommand => new RelayCommand(TrayData.ResetOutputTray);
+
         public ICommand SelectRunModeCommand
         {
             get
