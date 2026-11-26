@@ -29,6 +29,7 @@ namespace EQX.TemplateProject
                 .AddDevices()
                 .AddProcessIO()
                 .AddRecipes()
+                .AddTrayData()
                 .AddProcesses()
                 .Build();
         }

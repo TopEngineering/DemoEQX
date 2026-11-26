@@ -1,4 +1,4 @@
-<UserControl x:Class="EQX.TemplateProject.MVVM.Views.AutoView"
+﻿<UserControl x:Class="EQX.TemplateProject.MVVM.Views.AutoView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -91,24 +91,30 @@
         </Style>
         <DataTemplate x:Key="TrayCellTemplate">
             <Border BorderBrush="Black" BorderThickness="1"
-                    CornerRadius="6" Margin="2" Cursor="Arrow" ToolTip="{Binding State}">
+                    CornerRadius="6" Margin="2" Cursor="Arrow" ToolTip="{Binding Status}">
                 <Border.Style>
                     <Style TargetType="Border">
                         <Setter Property="Background" Value="Snow" />
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding State}" Value="Working">
+                            <DataTrigger Binding="{Binding Status}" Value="Blank">
+                                <Setter Property="Background" Value="#353535" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Status}" Value="Skip">
+                                <Setter Property="Background" Value="DarkGray" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Status}" Value="Working">
                                 <Setter Property="Background" Value="#FACC15" />
                             </DataTrigger>
-                            <DataTrigger Binding="{Binding State}" Value="OK">
+                            <DataTrigger Binding="{Binding Status}" Value="Pass">
                                 <Setter Property="Background" Value="#4ADE80" />
                             </DataTrigger>
-                            <DataTrigger Binding="{Binding State}" Value="Failed">
+                            <DataTrigger Binding="{Binding Status}" Value="Fail">
                                 <Setter Property="Background" Value="#F87171" />
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>
                 </Border.Style>
-                <TextBlock Text="{Binding Number}" FontSize="18" FontWeight="Bold"
+                <TextBlock Text="{Binding Id}" FontSize="18" FontWeight="Bold"
                            HorizontalAlignment="Center" VerticalAlignment="Center" />
             </Border>
         </DataTemplate>
@@ -133,7 +139,7 @@
                         <TextBlock Text="Input Tray" FontSize="18" FontWeight="SemiBold"
                                    HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
-                    <ItemsControl Grid.Row="1" ItemsSource="{Binding InputCells}"
+                    <ItemsControl Grid.Row="1" ItemsSource="{Binding TrayData.InputTray.Cells}"
                                   ItemTemplate="{StaticResource TrayCellTemplate}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -154,7 +160,7 @@
                         <TextBlock Text="Output Tray" FontSize="18" FontWeight="SemiBold"
                                    HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
-                    <ItemsControl Grid.Row="1" ItemsSource="{Binding OutputCells}"
+                    <ItemsControl Grid.Row="1" ItemsSource="{Binding TrayData.OutputTray.Cells}"
                                   ItemTemplate="{StaticResource TrayCellTemplate}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>

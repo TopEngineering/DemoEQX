@@ -12,6 +12,8 @@ using EQX.Core.Vision;
 using EQX.TemplateProject.Defines.Vision;
 using System.Diagnostics.Eventing.Reader;
 using EQX.TemplateProject.Defines.Process.Step.VisionProcess;
+using EQX.Core.Units;
+using EQX.TemplateProject.Defines.Devices.Tray;
 
 namespace EQX.TemplateProject.Process
 {
@@ -21,6 +23,9 @@ namespace EQX.TemplateProject.Process
         private readonly Devices _devices;
         private readonly VirtualIO _virtualIO;
         private readonly RecipeList _recipeList;
+        private readonly TrayData _trayData;
+        private ITrayCell<ETrayStatus>? _pickCell;
+        private ITrayCell<ETrayStatus>? _placeCell;
         private readonly CVisionAlignResults _visionAlignResults;
         private double _placeX;
         private double _placeY;
@@ -32,6 +37,10 @@ namespace EQX.TemplateProject.Process
         private IMotion ZAxis => _devices.Motions.TransferZAxis;
         private ICylinder Cylinder1 => _devices.Cylinders.TransferCylinder1;
         private ICylinder Cylinder2 => _devices.Cylinders.TransferCylinder2;
+        private static ITrayCell<ETrayStatus>? GetReadyCell(ITray<ETrayStatus> tray)
+        {
+            return tray.Cells.FirstOrDefault(c => c.Status == ETrayStatus.Ready);
+        }
         #endregion
 
         #region Flags
@@ -60,12 +69,14 @@ namespace EQX.TemplateProject.Process
             VirtualIO virtualIO,
             RecipeList recipeList,
             MachineStatus machineStatus,
-            CVisionAlignResults visionAlignResults)
+            CVisionAlignResults visionAlignResults,
+            TrayData trayData)
         {
             _devices = devices;
             _virtualIO = virtualIO;
             _recipeList = recipeList;
             _visionAlignResults = visionAlignResults;
+            _trayData = trayData;
         }
         #endregion
 
@@ -435,8 +446,10 @@ namespace EQX.TemplateProject.Process
                         Step.RunStep++;
                         break;
                     }
-                    Log.Debug("Cylinder1 Down");
+                    _pickCell = GetReadyCell(_trayData.InputTray);
+                    _pickCell.Status = ETrayStatus.Working;
                     _devices.Outputs.Cylinder1Down.Value = true;
+                    Log.Debug("Cylinder1 Down");
                     Wait(100);
                     Step.RunStep++;
                     break;
@@ -462,8 +475,8 @@ namespace EQX.TemplateProject.Process
                         Step.RunStep++;
                         break;
                     }
-                    Log.Debug("Vacuum1 On");
                     _devices.Outputs.Vacuum1On.Value = true;
+                    Log.Debug("Vacuum1 On");
                     Wait(100);
                     Step.RunStep++;
                     break;
@@ -481,6 +494,7 @@ namespace EQX.TemplateProject.Process
                     }
 #endif
                     Log.Debug("Vacuum1 On Done");
+                    Wait(100);
                     Step.RunStep++;
                     break;
                 case ETransferProcessPickStep.Cylinders1_Up:
@@ -489,11 +503,13 @@ namespace EQX.TemplateProject.Process
                         Step.RunStep++;
                         break;
                     }
-                    Log.Debug("Cylinder1 Up");
                     _devices.Outputs.Cylinder1Up.Value = true;
-                    Wait(100);
+#if !SIMULATION
                     Wait((int)(_recipeList.CommonRecipe.CylinderMoveTimeout * 1000),
                         () => Cylinder1.IsForward);
+#endif
+                    Log.Debug("Cylinder1 Up");
+                    Wait(100);
                     Step.RunStep++;
                     break;
                 case ETransferProcessPickStep.Cylinders1_Up_Wait:
@@ -509,6 +525,8 @@ namespace EQX.TemplateProject.Process
                         return;
                     }
 #endif
+                    _pickCell.Status = ETrayStatus.Pass;
+                    _pickCell = null;
                     Log.Debug("Cylinder1 Up Done");
                     Step.RunStep++;
                     break;
@@ -520,9 +538,11 @@ namespace EQX.TemplateProject.Process
                         break;
                     }
                     double targetZ = _recipeList.TransferRecipe.ZAxisPickPosition + _recipeList.TransferRecipe.Picker2OffsetPick;
-                    ZAxis.MoveAbs(targetZ);                  
+                    ZAxis.MoveAbs(targetZ);
+#if !SIMULATION
                     Wait((int)(_recipeList.CommonRecipe.MotionMoveTimeOut * 1000),
                         () => ZAxis.IsOnPosition(targetZ));
+#endif
                     Log.Debug($"Z Axis Move Pick Head 2 Position");
                     Step.RunStep++;
                     break;
@@ -545,6 +565,8 @@ namespace EQX.TemplateProject.Process
                         break;
                     }
                     Log.Debug("Cylinder2 Down");
+                    _pickCell = GetReadyCell(_trayData.InputTray);
+                    _pickCell.Status = ETrayStatus.Working;
                     _devices.Outputs.Cylinder2Down.Value = true;
                     Wait(100);
                     Step.RunStep++;
@@ -582,7 +604,7 @@ namespace EQX.TemplateProject.Process
                         Step.RunStep++;
                         break;
                     }
-#if !SIMULATION 
+#if !SIMULATION
                     if (WaitTimeOutOccurred)
                     { 
                         RaiseAlarm((int)EAlarm.Vacuum2_OnTimeout);
@@ -590,6 +612,7 @@ namespace EQX.TemplateProject.Process
                     }
 #endif
                     Log.Debug("Vaccum 2 On Done");
+                    Wait(100);
                     Step.RunStep++;
                     break;
                 case ETransferProcessPickStep.Cylinders2_Up:
@@ -616,6 +639,7 @@ namespace EQX.TemplateProject.Process
                         return;
                     }
 #endif
+                    _pickCell.Status = ETrayStatus.Pass;
                     Log.Debug("Cylinder2 Up Done");
                     Step.RunStep++;
                     break;
@@ -871,6 +895,8 @@ namespace EQX.TemplateProject.Process
                         break;
                     }
                     Log.Debug("Cylinder 1 Down");
+                    _placeCell = GetReadyCell(_trayData.OutputTray);
+                    _placeCell.Status = ETrayStatus.Working;
                     _devices.Outputs.Cylinder1Down.Value = true;
                     Wait(100);
                     Step.RunStep++;
@@ -944,6 +970,7 @@ namespace EQX.TemplateProject.Process
                         return;
                     }
 #endif
+                    _placeCell.Status = ETrayStatus.Pass;
                     Log.Debug("Cylinder 1 Up Done");
                     _devices.Outputs.Vacuum1Blow.Value = false;
                     Step.RunStep++;
@@ -977,6 +1004,8 @@ namespace EQX.TemplateProject.Process
                         break;
                     }
                     Log.Debug("Cylinder 2 Down");
+                    _placeCell = GetReadyCell(_trayData.OutputTray);
+                    _placeCell.Status = ETrayStatus.Working;
                     _devices.Outputs.Cylinder2Down.Value = true;
                     Wait(100);
                     Step.RunStep++;
@@ -1051,6 +1080,7 @@ namespace EQX.TemplateProject.Process
                         return;
                     }
 #endif
+                    _placeCell.Status = ETrayStatus.Pass;
                     Log.Debug("Cylinder 2 Up Done");
                     Step.RunStep++;
                     break;
