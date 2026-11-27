@@ -91,6 +91,20 @@ namespace EQX.TemplateProject.Recipe
                 pickPlaceTimeOut = value;
             }
         }
+        private double processHandshakeTimeout = 1800.0;
+
+        [SingleRecipeDescription(Description = "Process Handshake Timeout",Detail = "Maximum wait time for Tray and Transfer process signals", Unit = Unit.Second)]
+        public double ProcessHandshakeTimeout
+        {
+            get => processHandshakeTimeout;
+            set
+            {
+                if (processHandshakeTimeout == value) return;
+                OnRecipeChanged(processHandshakeTimeout, value);
+                processHandshakeTimeout = value;
+            }
+        }
+
         private double materialInputTimeout = 1800.0;
 
         [SingleRecipeDescription(Description = "Material Input Timeout",
