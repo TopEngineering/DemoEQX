@@ -24,28 +24,63 @@ namespace EQX.TemplateProject.Process
         private readonly VirtualIO _virtualIO;
         private readonly RecipeList _recipeList;
         private readonly TrayData _trayData;
-        private ITrayCell<ETrayStatus>? _pickCell;
-        private ITrayCell<ETrayStatus>? _placeCell;
         private readonly CVisionAlignResults _visionAlignResults;
         private double _placeX;
         private double _placeY;
         VisionAlignResult visionResult;
         private ECylinder CurrentCylinder = ECylinder.PickHead1;
+        private bool _resumePlace;
+        private bool _pickHead1Done;
+        private bool _pickHead2Done;
+        private bool _placeHead1Done;
+        private bool _placeHead2Done;
 
         private IMotion XAxis => _devices.Motions.TransferXAxis;
         private IMotion YAxis => _devices.Motions.TransferYAxis;
         private IMotion ZAxis => _devices.Motions.TransferZAxis;
         private ICylinder Cylinder1 => _devices.Cylinders.TransferCylinder1;
         private ICylinder Cylinder2 => _devices.Cylinders.TransferCylinder2;
-        private static ITrayCell<ETrayStatus>? GetReadyCell(ITray<ETrayStatus> tray)
-        {
-            return tray.Cells.FirstOrDefault(c => c.Status == ETrayStatus.Ready);
-        }
         #endregion
 
         #region Flags
         private IDInputDevice VirtualInput => _virtualIO.TransferProcessInput;
         private IDOutputDevice VirtualOutput => _virtualIO.TransferProcessOutput;
+        private bool FlagRequestPickCell
+        {
+            get => VirtualOutput[(int)ETransferProcessOutput.TRANSFER_REQUEST_PICK_CELL];
+            set => VirtualOutput[(int)ETransferProcessOutput.TRANSFER_REQUEST_PICK_CELL] = value;
+        }
+        private bool FlagRequestPlaceCell
+        {
+            get => VirtualOutput[(int)ETransferProcessOutput.TRANSFER_REQUEST_PLACE_CELL];
+            set => VirtualOutput[(int)ETransferProcessOutput.TRANSFER_REQUEST_PLACE_CELL] = value;
+        }
+        private bool FlagTransferPickDone
+        {
+            get => VirtualOutput[(int)ETransferProcessOutput.TRANSFER_PICK_DONE];
+            set => VirtualOutput[(int)ETransferProcessOutput.TRANSFER_PICK_DONE] = value;
+        }
+        private bool FlagTransferPlaceDone
+        {
+            get => VirtualOutput[(int)ETransferProcessOutput.TRANSFER_PLACE_DONE];
+            set => VirtualOutput[(int)ETransferProcessOutput.TRANSFER_PLACE_DONE] = value;
+        }
+        private bool FlagTrayPickCellReady
+        {
+            get => VirtualInput[(int)ETransferProcessInput.TRAY_PICK_CELL_READY];
+        }
+        private bool FlagTrayPlaceCellReady
+        {
+            get => VirtualInput[(int)ETransferProcessInput.TRAY_PLACE_CELL_READY];
+        }
+        private bool FlagTrayPickDone
+        {
+            get => VirtualInput[(int)ETransferProcessInput.TRAY_PICK_DONE];
+        }
+        private bool FlagTrayPlaceDone
+        {
+            get => VirtualInput[(int)ETransferProcessInput.TRAY_PLACE_DONE];
+        }
         private bool FlagRequestVisionInspect1
         {
             set { VirtualOutput[(int)ETransferProcessOutput.TRANSFER_REQ_INSPECT1] = value; }
@@ -86,6 +121,10 @@ namespace EQX.TemplateProject.Process
             switch ((ETransferProcessOriginStep)Step.OriginStep)
             {
                 case ETransferProcessOriginStep.Start:
+                    FlagRequestPickCell = false;
+                    FlagRequestPlaceCell = false;
+                    FlagTransferPickDone = false;
+                    FlagTransferPlaceDone = false;
                     Log.Debug("Origin Start");
                     Step.OriginStep++;
                     break;
@@ -245,8 +284,8 @@ namespace EQX.TemplateProject.Process
                     Step.RunStep++;
                     break;
                 case ETransferProcessAutoRunStep.End:
-                    Log.Debug("AutoRun Ready To Pick");
-                    Sequence = ESequence.Pick;
+                    Sequence = _resumePlace ? ESequence.Place : ESequence.Pick;
+                    Log.Debug($"AutoRun: {Sequence}");
                     break;
             }
         }
@@ -256,6 +295,10 @@ namespace EQX.TemplateProject.Process
             switch ((ETransferProcessReadyStep)Step.RunStep)
             {
                 case ETransferProcessReadyStep.Start:
+                    FlagRequestPickCell = false;
+                    FlagRequestPlaceCell = false;
+                    FlagTransferPickDone = false;
+                    FlagTransferPlaceDone = false;
                     Log.Debug("Ready Start");
                     Step.RunStep++;
                     break;
@@ -371,10 +414,13 @@ namespace EQX.TemplateProject.Process
             switch ((ETransferProcessPickStep)Step.RunStep)
             {
                 case ETransferProcessPickStep.Start:
-                    if (!_trayData.InputTray.Cells.Any(cell => cell.Status == ETrayStatus.Ready))
+                    if (!(_pickHead1Done || _recipeList.CommonRecipe.SkipCylinder1)|| !(_pickHead2Done || _recipeList.CommonRecipe.SkipCylinder2))
                     {
-                        RaiseAlarm(EAlarm.TrayInputEmpty);
-                        return;
+                        if (!_trayData.InputTray.Cells.Any(cell => cell.Status == ETrayStatus.Ready || cell.Status == ETrayStatus.Working))
+                        {
+                            RaiseAlarm(EAlarm.TrayInputEmpty);
+                            return;
+                        }
                     }
                     Log.Debug("Pick Start");
                     Step.RunStep++;
@@ -445,19 +491,26 @@ namespace EQX.TemplateProject.Process
                     Log.Debug("Z Axis Move Pick Position Done");
                     Step.RunStep++;
                     break;
-                case ETransferProcessPickStep.Cylinders1_Down:
-                    if (_recipeList.CommonRecipe.SkipCylinder1) 
-                    { 
-                        Step.RunStep++;
+                case ETransferProcessPickStep.TrayPick1Request:
+                    if (_recipeList.CommonRecipe.SkipCylinder1 || _pickHead1Done)
+                    {
+                        Step.RunStep = (int)ETransferProcessPickStep.ZAxis_MovePickHead2Position;
                         break;
                     }
-                    _pickCell = GetReadyCell(_trayData.InputTray);
-                    if (_pickCell == null)
+                    FlagRequestPickCell = true;
+                    Wait((int)(_recipeList.CommonRecipe.ProcessHandshakeTimeout * 1000),
+                        () => FlagTrayPickCellReady);
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPickStep.TrayPick1Request_Wait:
+                    if (WaitTimeOutOccurred)
                     {
-                        RaiseAlarm(EAlarm.TrayInputEmpty);
+                        RaiseAlarm(EAlarm.TrayPickTimeout);
                         return;
                     }
-                    _pickCell.Status = ETrayStatus.Working;
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPickStep.Cylinders1_Down:
                     _devices.Outputs.Cylinder1Down.Value = true;
                     Log.Debug("Cylinder1 Down");
                     Wait(100);
@@ -480,22 +533,12 @@ namespace EQX.TemplateProject.Process
                     Step.RunStep++;
                     break;
                 case ETransferProcessPickStep.Vacuum1_On:
-                    if (_recipeList.CommonRecipe.SkipCylinder1)
-                    {
-                        Step.RunStep++;
-                        break;
-                    }
                     _devices.Outputs.Vacuum1On.Value = true;
                     Log.Debug("Vacuum1 On");
                     Wait(100);
                     Step.RunStep++;
                     break;
                 case ETransferProcessPickStep.Vacuum1_On_Wait:
-                    if (_recipeList.CommonRecipe.SkipCylinder1)
-                    {
-                        Step.RunStep++;
-                        break;
-                    }
 #if !SIMULATION
                     if (WaitTimeOutOccurred)
                     {
@@ -508,11 +551,6 @@ namespace EQX.TemplateProject.Process
                     Step.RunStep++;
                     break;
                 case ETransferProcessPickStep.Cylinders1_Up:
-                    if (_recipeList.CommonRecipe.SkipCylinder1)
-                    {
-                        Step.RunStep++;
-                        break;
-                    }
                     _devices.Outputs.Cylinder1Up.Value = true;
 #if !SIMULATION
                     Wait((int)(_recipeList.CommonRecipe.CylinderMoveTimeout * 1000),
@@ -523,11 +561,6 @@ namespace EQX.TemplateProject.Process
                     Step.RunStep++;
                     break;
                 case ETransferProcessPickStep.Cylinders1_Up_Wait:
-                    if (_recipeList.CommonRecipe.SkipCylinder1)
-                    {
-                        Step.RunStep++;
-                        break;
-                    }
 #if !SIMULATION
                     if (WaitTimeOutOccurred)
                     {
@@ -535,9 +568,31 @@ namespace EQX.TemplateProject.Process
                         return;
                     }
 #endif
-                    _pickCell.Status = ETrayStatus.Pass;
-                    _pickCell = null;
                     Log.Debug("Cylinder1 Up Done");
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPickStep.TrayPick1Done:
+                    FlagTransferPickDone = true;
+                    Wait((int)(_recipeList.CommonRecipe.ProcessHandshakeTimeout * 1000),
+                        () => FlagTrayPickDone);
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPickStep.TrayPick1Done_Wait:
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TrayPickTimeout);
+                        return;
+                    }
+                    if (FlagRequestPickCell)
+                    {
+                        _pickHead1Done = true;
+                        FlagRequestPickCell = false;
+                        Wait((int)(_recipeList.CommonRecipe.ProcessHandshakeTimeout * 1000),
+                            () => !FlagTrayPickCellReady && !FlagTrayPickDone);
+                        break;
+                    }
+                    FlagTransferPickDone = false;
+                    Log.Debug("Tray Pick Head 1 handshake completed");
                     Step.RunStep++;
                     break;
                 case ETransferProcessPickStep.ZAxis_MovePickHead2Position:
@@ -568,6 +623,25 @@ namespace EQX.TemplateProject.Process
                     Log.Debug("Z Axis Move Pick Head 2 Position Done");
                     Step.RunStep++;
                     break;
+                case ETransferProcessPickStep.TrayPick2Request:
+                    if (_pickHead2Done || _recipeList.CommonRecipe.SkipCylinder2)
+                    {
+                        Step.RunStep = (int)ETransferProcessPickStep.XAxis_MoveInspectVision1;
+                        break;
+                    }
+                    FlagRequestPickCell = true;
+                    Wait((int)(_recipeList.CommonRecipe.ProcessHandshakeTimeout * 1000),
+                        () => FlagTrayPickCellReady);
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPickStep.TrayPick2Request_Wait:
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TrayPickTimeout);
+                        return;
+                    }
+                    Step.RunStep++;
+                    break;
                 case ETransferProcessPickStep.Cylinders2_Down:
                     if (_recipeList.CommonRecipe.SkipCylinder2)
                     {
@@ -575,13 +649,6 @@ namespace EQX.TemplateProject.Process
                         break;
                     }
                     Log.Debug("Cylinder2 Down");
-                    _pickCell = GetReadyCell(_trayData.InputTray);
-                    if (_pickCell == null)
-                    {
-                        RaiseAlarm(EAlarm.TrayInputEmpty);
-                        return;
-                    }
-                    _pickCell.Status = ETrayStatus.Working;
                     _devices.Outputs.Cylinder2Down.Value = true;
                     Wait(100);
                     Step.RunStep++;
@@ -654,8 +721,36 @@ namespace EQX.TemplateProject.Process
                         return;
                     }
 #endif
-                    _pickCell.Status = ETrayStatus.Pass;
                     Log.Debug("Cylinder2 Up Done");
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPickStep.TrayPick2Done:
+                    if (_recipeList.CommonRecipe.SkipCylinder2)
+                    {
+                        Step.RunStep = (int)ETransferProcessPickStep.XAxis_MoveInspectVision1;
+                        break;
+                    }
+                    FlagTransferPickDone = true;
+                    Wait((int)(_recipeList.CommonRecipe.ProcessHandshakeTimeout * 1000),
+                        () => FlagTrayPickDone);
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPickStep.TrayPick2Done_Wait:
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TrayPickTimeout);
+                        return;
+                    }
+                    if (FlagRequestPickCell)
+                    {
+                        _pickHead2Done = true;
+                        FlagRequestPickCell = false;
+                        Wait((int)(_recipeList.CommonRecipe.ProcessHandshakeTimeout * 1000),
+                            () => !FlagTrayPickCellReady && !FlagTrayPickDone);
+                        break;
+                    }
+                    FlagTransferPickDone = false;
+                    Log.Debug("Tray Pick Head 2 handshake completed");
                     Step.RunStep++;
                     break;
                 case ETransferProcessPickStep.XAxis_MoveInspectVision1:
@@ -801,10 +896,14 @@ namespace EQX.TemplateProject.Process
             switch ((ETransferProcessPlaceStep)Step.RunStep)
             {
                 case ETransferProcessPlaceStep.Start:
-                    if (!_trayData.OutputTray.Cells.Any(cell => cell.Status == ETrayStatus.Ready))
+                    _resumePlace = true;
+                    if (!(_placeHead1Done || _recipeList.CommonRecipe.SkipCylinder1)|| !(_placeHead2Done || _recipeList.CommonRecipe.SkipCylinder2))
                     {
-                        RaiseAlarm(EAlarm.TrayOutputFull);
-                        return;
+                        if (!_trayData.OutputTray.Cells.Any(cell => cell.Status == ETrayStatus.Ready || cell.Status == ETrayStatus.Working))
+                        {
+                            RaiseAlarm(EAlarm.TrayOutputFull);
+                            return;
+                        }
                     }
                     _placeX = _recipeList.TransferRecipe.XAxisPlacePosition;
                     _placeY = _recipeList.TransferRecipe.YAxisPlacePosition;
@@ -908,6 +1007,25 @@ namespace EQX.TemplateProject.Process
                     Log.Debug("Z Axis Move Place Position Done");
                     Step.RunStep++;
                     break;
+                case ETransferProcessPlaceStep.TrayPlace1Request:
+                    if (_placeHead1Done && _recipeList.CommonRecipe.SkipCylinder1)
+                    {
+                        Step.RunStep = (int)ETransferProcessPlaceStep.ZAxis_MovePlaceHead2Position;
+                        break;
+                    }
+                    FlagRequestPlaceCell = true;
+                    Wait((int)(_recipeList.CommonRecipe.ProcessHandshakeTimeout * 1000),
+                        () => FlagTrayPlaceCellReady);
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPlaceStep.TrayPlace1Request_Wait:
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TrayPlaceTimeout);
+                        return;
+                    }
+                    Step.RunStep++;
+                    break;
                 case ETransferProcessPlaceStep.Cylinders1_Down:
                     if (_recipeList.CommonRecipe.SkipCylinder1)
                     {
@@ -915,13 +1033,6 @@ namespace EQX.TemplateProject.Process
                         break;
                     }
                     Log.Debug("Cylinder 1 Down");
-                    _placeCell = GetReadyCell(_trayData.OutputTray);
-                    if (_placeCell == null)
-                    {
-                        RaiseAlarm(EAlarm.TrayOutputFull);
-                        return;
-                    }
-                    _placeCell.Status = ETrayStatus.Working;
                     _devices.Outputs.Cylinder1Down.Value = true;
                     Wait(100);
                     Step.RunStep++;
@@ -995,11 +1106,40 @@ namespace EQX.TemplateProject.Process
                         return;
                     }
 #endif
-                    _placeCell.Status = ETrayStatus.Pass;
                     Log.Debug("Cylinder 1 Up Done");
                     _devices.Outputs.Vacuum1Blow.Value = false;
                     Step.RunStep++;
                     break;
+                case ETransferProcessPlaceStep.TrayPlace1Done:
+                    if (_recipeList.CommonRecipe.SkipCylinder1)
+                    {
+                        Step.RunStep = (int)ETransferProcessPlaceStep.ZAxis_MovePlaceHead2Position;
+                        break;
+                    }
+                    FlagTransferPlaceDone = true;
+                    Wait((int)(_recipeList.CommonRecipe.ProcessHandshakeTimeout * 1000),
+                        () => FlagTrayPlaceDone);
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPlaceStep.TrayPlace1Done_Wait:
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TrayPlaceTimeout);
+                        return;
+                    }
+                    if (FlagRequestPlaceCell)
+                    {
+                        _placeHead1Done = true;
+                        FlagRequestPlaceCell = false;
+                        Wait((int)(_recipeList.CommonRecipe.ProcessHandshakeTimeout * 1000),
+                            () => !FlagTrayPlaceCellReady && !FlagTrayPlaceDone);
+                        break;
+                    }
+                    FlagTransferPlaceDone = false;
+                    Log.Debug("Tray Place Head 2 handshake completed");
+                    Step.RunStep++;
+                    break;
+
                 case ETransferProcessPlaceStep.ZAxis_MovePlaceHead2Position:
                     if(_recipeList.CommonRecipe.SkipCylinder2)
                     {
@@ -1022,6 +1162,30 @@ namespace EQX.TemplateProject.Process
                     Log.Debug("Z Axis Move Place Head2 Position Done");
                     Step.RunStep++;
                     break;
+                case ETransferProcessPlaceStep.TrayPlace2Request:
+                    if (_placeHead2Done)
+                    {
+                        Step.RunStep = (int)ETransferProcessPlaceStep.End;
+                        break;
+                    }
+                    if (_recipeList.CommonRecipe.SkipCylinder2)
+                    {
+                        Step.RunStep = (int)ETransferProcessPlaceStep.Cylinders2_Down;
+                        break;
+                    }
+                    FlagRequestPlaceCell = true;
+                    Wait((int)(_recipeList.CommonRecipe.ProcessHandshakeTimeout * 1000),
+                        () => FlagTrayPlaceCellReady);
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPlaceStep.TrayPlace2Request_Wait:
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TrayPlaceTimeout);
+                        return;
+                    }
+                    Step.RunStep++;
+                    break;
                 case ETransferProcessPlaceStep.Cylinders2_Down:
                     if (_recipeList.CommonRecipe.SkipCylinder2)
                     {
@@ -1029,13 +1193,6 @@ namespace EQX.TemplateProject.Process
                         break;
                     }
                     Log.Debug("Cylinder 2 Down");
-                    _placeCell = GetReadyCell(_trayData.OutputTray);
-                    if (_placeCell == null)
-                    {
-                        RaiseAlarm(EAlarm.TrayOutputFull);
-                        return;
-                    }
-                    _placeCell.Status = ETrayStatus.Working;
                     _devices.Outputs.Cylinder2Down.Value = true;
                     Wait(100);
                     Step.RunStep++;
@@ -1110,11 +1267,42 @@ namespace EQX.TemplateProject.Process
                         return;
                     }
 #endif
-                    _placeCell.Status = ETrayStatus.Pass;
                     Log.Debug("Cylinder 2 Up Done");
                     Step.RunStep++;
                     break;
+                case ETransferProcessPlaceStep.TrayPlace2Done:
+                    if (_recipeList.CommonRecipe.SkipCylinder2)
+                    {
+                        Step.RunStep = (int)ETransferProcessPlaceStep.End;
+                        break;
+                    }
+                    FlagTransferPlaceDone = true;
+                    Wait((int)(_recipeList.CommonRecipe.ProcessHandshakeTimeout * 1000),
+                        () => FlagTrayPlaceDone);
+                    Step.RunStep++;
+                    break;
+                case ETransferProcessPlaceStep.TrayPlace2Done_Wait:
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TrayPlaceTimeout);
+                        return;
+                    }
+                    if (FlagRequestPlaceCell)
+                    {
+                        _placeHead2Done = true;
+                        FlagRequestPlaceCell = false;
+                        Wait((int)(_recipeList.CommonRecipe.ProcessHandshakeTimeout * 1000),
+                            () => !FlagTrayPlaceCellReady && !FlagTrayPlaceDone);
+                        break;
+                    }
+                    FlagTransferPlaceDone = false;
+                    Log.Debug("Tray Place Head 2 handshake completed");
+                    Step.RunStep++;
+                    break;
                 case ETransferProcessPlaceStep.End:
+                    _resumePlace = false;
+                    _pickHead1Done = _pickHead2Done = false;
+                    _placeHead1Done = _placeHead2Done = false;
                     Log.Debug("Place End");
                     Sequence = ESequence.AutoRun;
                     break;

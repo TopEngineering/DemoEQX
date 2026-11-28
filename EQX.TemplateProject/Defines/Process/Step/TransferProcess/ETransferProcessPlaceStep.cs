@@ -28,7 +28,6 @@ namespace EQX.TemplateProject.Defines.Process.Step.TransferProcess
         Cylinders1_Up_Wait,
         TrayPlace1Done,
         TrayPlace1Done_Wait,
-        TrayPlace1DoneClear_Wait,
 
         ZAxis_MovePlaceHead2Position,
         ZAxis_MovePlaceHead2Position_Wait,
@@ -43,7 +42,6 @@ namespace EQX.TemplateProject.Defines.Process.Step.TransferProcess
         Cylinders2_Up_Wait,
         TrayPlace2Done,
         TrayPlace2Done_Wait,
-        TrayPlace2DoneClear_Wait,
 
         End,
     }
