@@ -1,4 +1,7 @@
 ﻿using EQX.Core.InOut;
+using EQX.Core.Units;
+using EQX.TemplateProject.MVVM.Models;
+using EQX.TemplateProject.Defines.Devices.Tray;
 using EQX.Core.Sequence;
 using EQX.InOut.Virtual;
 using EQX.Process;
@@ -6,7 +9,6 @@ using EQX.TemplateProject.Defines;
 using EQX.TemplateProject.Defines.Devices;
 using EQX.TemplateProject.Defines.Process.Step.TrayProcess;
 using EQX.TemplateProject.Recipe;
-using System.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,8 +23,8 @@ namespace EQX.TemplateProject.Process
         private readonly Devices _devices;
         private readonly VirtualIO _virtualIO;
         private readonly RecipeList _recipeList;
-        private int InputIndex;
-        private int OutputIndex;
+        private readonly TrayData _trayData;
+        private ITrayCell<ETrayStatus>? _trayStatus;
         #endregion
         #region Flags
         private IDInputDevice VirtualInput => _virtualIO.TrayProcessInput;
@@ -61,11 +63,12 @@ namespace EQX.TemplateProject.Process
         }
         #endregion
         #region Constructors
-        public TrayProcess(Devices devices, VirtualIO virtualIO, RecipeList recipeList)
+        public TrayProcess(Devices devices, VirtualIO virtualIO, RecipeList recipeList, TrayData trayData)
         {
             _devices = devices;
             _virtualIO = virtualIO;
             _recipeList = recipeList;
+            _trayData = trayData;
         }
 
         #endregion
@@ -84,6 +87,7 @@ namespace EQX.TemplateProject.Process
                     break;
                 case ETrayProcessOriginStep.ClearFlags:
                     Log.Debug("Clear Flags");
+                    _trayStatus = null;
                     ((MappableOutputDevice<ETrayProcessOutput>)VirtualOutput).ClearOutputs();
                     Step.OriginStep++;
                     break;
@@ -131,8 +135,7 @@ namespace EQX.TemplateProject.Process
                     Step.RunStep++;
                     break;
                 case ETrayProcessAutoRunStep.CheckTrayStatus:
-                    Log.Debug("CheckTray");
-                    Step.RunStep++;
+                    Sequence = ESequence.CheckTray;
                     break;
                 case ETrayProcessAutoRunStep.WaitTransferRequest:
                     if (FlagTransferRequestPickCell)
@@ -157,6 +160,7 @@ namespace EQX.TemplateProject.Process
                     break;
                 case ETrayProcessReadyStep.ClearFlags:
                     Log.Debug("Clear Flag");
+                    _trayStatus = null;
                     ((MappableOutputDevice<ETrayProcessOutput>)VirtualOutput).ClearOutputs(); 
                     Step.RunStep++;
                     break;
@@ -226,24 +230,16 @@ namespace EQX.TemplateProject.Process
                     break;
                 case ETrayProcessCheckTrayStep.End:
                     Log.Debug("Check Tray Done");
-                    Sequence = ESequence.PreparePickCell;
+                    Sequence = ESequence.AutoRun;
+                    Step.RunStep = (int)ETrayProcessAutoRunStep.WaitTransferRequest;
                     break;
             }
         }
         private void Sequence_PreparePickCell()
-        { 
+        {
             switch((ETrayProcessPreparePickCellStep)Step.RunStep)
             {
                 case ETrayProcessPreparePickCellStep.Start:
-                    Log.Debug("Pick Start");
-                    Step.RunStep++;
-                    break;
-                case ETrayProcessPreparePickCellStep.CheckInputTray:
-                    if (InputIndex < (long)_recipeList.TrayRecipe.InputTrayRow * _recipeList.TrayRecipe.InputTrayColumn)
-                    {
-                        RaiseAlarm(EAlarm.TrayInputEmpty);
-                        return;
-                    }
 #if !SIMULATION
                     if (!_devices.Inputs.InputTrayDetect.Value)
                     {
@@ -251,67 +247,63 @@ namespace EQX.TemplateProject.Process
                         return;
                     }
 #endif
-                    Step.RunStep++;
-                    break;
-                case ETrayProcessPreparePickCellStep.TransferRequestPick:
-                    if(FlagTransferRequestPickCell == false)
+                    _trayStatus ??= _trayData.InputTray.Cells.FirstOrDefault(cell => cell.Status == ETrayStatus.Ready);
+                    if (_trayStatus == null)
                     {
-                        RaiseAlarm(EAlarm.TransferPickFailed);
+                        RaiseAlarm(EAlarm.TrayInputEmpty);
                         Wait(50);
                         break;
                     }
-                    Log.Debug("Transfer Resquest Pick");
-                    Step.RunStep++;
-                    break;
-                case ETrayProcessPreparePickCellStep.TrayPickCellReady:
+                    _trayStatus.Status = ETrayStatus.Working;
+                    Log.Debug("Input Tray cell Working");
                     FlagTrayPickCellReady = true;
-                    Log.Debug("Tray Pick Cell Ready");
+                    Wait((int)(_recipeList.CommonRecipe.ProcessHandshakeTimeout * 1000),
+                        () => FlagTransferPickDone);
                     Step.RunStep++;
                     break;
-                case ETrayProcessPreparePickCellStep.TransferPickDone:
-                    if (FlagTransferPickDone == false)
+                case ETrayProcessPreparePickCellStep.WaitTransferDone:
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TrayPickTimeout);
+                        return;
+                    }
+                    if (_trayStatus == null || _trayStatus.Status != ETrayStatus.Working)
                     {
                         RaiseAlarm(EAlarm.TransferPickFailed);
-                        break;
+                        return;
                     }
+                    _trayStatus.Status = ETrayStatus.Pass;
+                    Log.Debug($"Input Tray cell Pass");
+                    _trayStatus = null;
+                    FlagTrayPickDone = true;
+                    Wait((int)(_recipeList.CommonRecipe.ProcessHandshakeTimeout * 1000),
+                        () => !FlagTransferRequestPickCell);
                     Log.Debug("Transfer Pick Done");
                     Step.RunStep++;
                     break;
-                case ETrayProcessPreparePickCellStep.TrayPickDone:
-                    FlagTrayPickDone = true;
-                    Log.Debug("Tray Pick Done");
-                    Step.RunStep++;
-                    break;
-                case ETrayProcessPreparePickCellStep.UpdateInputIndex:
-                    Log.Debug("Update Input Index");
-                    InputIndex++;
-                    Step.RunStep++;
-                    break;
-                case ETrayProcessPreparePickCellStep.ClearPickFlags:
-                    ((MappableOutputDevice<ETrayProcessOutput>)VirtualOutput).ClearOutputs(); 
-                    Log.Debug("Clear Pick Flags");
+                case ETrayProcessPreparePickCellStep.ClearFlag:
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TrayPickTimeout);
+                        return;
+                    }
+                    FlagTrayPickCellReady = false;
+                    FlagTrayPickDone = false;
+                    Wait((int)(_recipeList.CommonRecipe.ProcessHandshakeTimeout * 1000),
+                        () => !FlagTransferPickDone);
                     Step.RunStep++;
                     break;
                 case ETrayProcessPreparePickCellStep.End:
-                    Log.Debug("Pick Done");
-                    Sequence = ESequence.PreparePlaceCell;
+                    Sequence = ESequence.AutoRun;
+                    Step.RunStep = (int)ETrayProcessAutoRunStep.WaitTransferRequest;
                     break;
             }
         }
         private void Sequence_PreparePlaceCell()
-        { 
+        {
             switch((ETrayProcessPreparePlaceCellStep)Step.RunStep)
             {
                 case ETrayProcessPreparePlaceCellStep.Start:
-                    Log.Debug("Place Start");
-                    Step.RunStep++;
-                    break;
-                case ETrayProcessPreparePlaceCellStep.CheckOutputTray:
-                    if (OutputIndex >= (long)_recipeList.TrayRecipe.OutputTrayRow * _recipeList.TrayRecipe.OutputTrayColumn)
-                    {
-                        RaiseAlarm(EAlarm.TrayOutputFull);
-                        return;
-                    }
 #if !SIMULATION
                     if (!_devices.Inputs.OutputTrayDetect.Value)
                     {
@@ -319,53 +311,55 @@ namespace EQX.TemplateProject.Process
                         return;
                     }
 #endif
-                    Step.RunStep++;
-                    break;
-                case ETrayProcessPreparePlaceCellStep.TransferRequestPlace:
-                    Log.Debug("Transfer Request Place");
-                    if(FlagTransferRequestPlaceCell == false)
+                    _trayStatus ??= _trayData.OutputTray.Cells.FirstOrDefault(cell => cell.Status == ETrayStatus.Ready);
+                    if (_trayStatus == null)
                     {
-                        RaiseAlarm(EAlarm.TransferRequestPlaceFailed);
+                        RaiseAlarm(EAlarm.TrayOutputFull);
                         Wait(50);
                         break;
                     }
-                    Step.RunStep++;
-                    break;
-                case ETrayProcessPreparePlaceCellStep.TrayPlaceCellReady:
+                    _trayStatus.Status = ETrayStatus.Working;
+                    Log.Debug($"Output Tray cell Working");
                     FlagTrayPlaceCellReady = true;
-                    Log.Debug("Tray Place Cell Ready");
+                    Wait((int)(_recipeList.CommonRecipe.ProcessHandshakeTimeout * 1000),
+                        () => FlagTransferPlaceDone);
                     Step.RunStep++;
                     break;
-                case ETrayProcessPreparePlaceCellStep.TransferPlaceDone:
-                    if(FlagTransferPlaceDone == false)
+                case ETrayProcessPreparePlaceCellStep.WaitTransferDone:
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TrayPlaceTimeout);
+                        return;
+                    }
+                    if (_trayStatus == null || _trayStatus.Status != ETrayStatus.Working)
                     {
                         RaiseAlarm(EAlarm.TransferPlaceFailed);
                         Wait(50);
                         break;
                     }
-                    Log.Debug("Transfer Place Done");
-                    Step.RunStep++;
-                    break;
-                case ETrayProcessPreparePlaceCellStep.TrayPlaceDone:
+                    _trayStatus.Status = ETrayStatus.Pass;
+                    Log.Debug($"Output Tray cell Pass");
+                    _trayStatus = null;
                     FlagTrayPlaceDone = true;
-                    Log.Debug("Tray Place Done");
+                    Wait((int)(_recipeList.CommonRecipe.ProcessHandshakeTimeout * 1000),
+                        () => !FlagTransferRequestPlaceCell);
                     Step.RunStep++;
                     break;
-                case ETrayProcessPreparePlaceCellStep.UpdateOutputIndex:
-                    Log.Debug("Update Output Index");
-                    OutputIndex++;
-                    Step.RunStep++;
-                    break;
-                case ETrayProcessPreparePlaceCellStep.ClearPlaceFlags:
-                    ((MappableOutputDevice<ETrayProcessOutput>)VirtualOutput).ClearOutputs(); 
+                case ETrayProcessPreparePlaceCellStep.ClearFlag:
+                    if (WaitTimeOutOccurred)
+                    {
+                        RaiseAlarm(EAlarm.TrayPlaceTimeout);
+                        return;
+                    }
                     FlagTrayPlaceCellReady = false;
                     FlagTrayPlaceDone = false;
-                    Log.Debug("Clear Place Flag");
+                    Wait((int)(_recipeList.CommonRecipe.ProcessHandshakeTimeout * 1000),
+                        () => !FlagTransferPlaceDone);
                     Step.RunStep++;
                     break;
                 case ETrayProcessPreparePlaceCellStep.End:
-                    Log.Debug("Place Done");
-                    Sequence = ESequence.PreparePickCell;
+                    Sequence = ESequence.AutoRun;
+                    Step.RunStep = (int)ETrayProcessAutoRunStep.WaitTransferRequest;
                     break;
             }
         }
